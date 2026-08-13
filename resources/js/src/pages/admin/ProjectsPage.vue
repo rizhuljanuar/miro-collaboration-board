@@ -1,5 +1,8 @@
 <script setup lang='ts'>
 import { RouterLink } from 'vue-router';
+import { storeToRefs } from 'pinia';
+
+import { useUiStore } from '@/stores/ui.store';
 
 interface ProjectPreview {
   id: number;
@@ -7,6 +10,10 @@ interface ProjectPreview {
   updatedAt: string;
   members: number;
 }
+
+const uiStore = useUiStore();
+
+const { isProjectCreateModalOpen } = storeToRefs(uiStore);
 
 const projects: ProjectPreview[] = [
   {
@@ -52,9 +59,31 @@ const projects: ProjectPreview[] = [
         <button
           type='button'
           class='rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200'
+          @click="uiStore.openProjectCreateModal"
         >
           New project
         </button>
+
+        <div
+          v-if='isProjectCreateModalOpen'
+          class='mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-950'
+        >
+          <div>
+            <p class='font-semibold'>Create project modal is ready for the next phase.</p>
+
+            <p class='mt-1 text-sm text-blue-800'>
+                Form, validation, dan request API create project akan dibuat pada FASE 3.
+            </p>
+          </div>
+
+          <button
+            type='button'
+            class='rounded-lg bg-white px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100'
+            @click='uiStore.closeProjectCreateModal'
+          >
+            Close
+          </button>
+        </div>
       </header>
 
       <section class='mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
