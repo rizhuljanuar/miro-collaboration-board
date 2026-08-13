@@ -8,23 +8,23 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/app/RouterPlaceholderPage.vue'),
+    component: () => import('@/pages/auth/LoginPage.vue'),
     meta: {
-        requiresAuth: false,
+      requiresAuth: false,
     },
   },
   {
     path: '/app/projects',
     name: 'projects',
-    component: () => import('@/app/RouterPlaceholderPage.vue'),
+    component: () => import('@/pages/admin/ProjectsPage.vue'),
     meta: {
-        requiresAuth: true,
+      requiresAuth: true,
     },
   },
   {
     path: '/app/projects/:projectId',
     name: 'project-board',
-    component: () => import('@/app/RouterPlaceholderPage.vue'),
+    component: () => import('@/pages/admin/project-board/ProjectBoardPage.vue'),
     meta: {
       requiresAuth: true,
     },
