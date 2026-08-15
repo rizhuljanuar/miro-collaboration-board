@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
 import { useUiStore } from '@/stores/ui.store';
+import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 
 interface ProjectPreview {
   id: number;
@@ -56,13 +57,17 @@ const projects: ProjectPreview[] = [
           </p>
         </div>
 
-        <button
-          type='button'
-          class='rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200'
-          @click="uiStore.openProjectCreateModal"
-        >
-          New project
-        </button>
+        <div class="flex flex-wrap items-center gap-3">
+          <ActiveUserMenu />
+
+          <button
+            type='button'
+            class='rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200'
+            @click="uiStore.openProjectCreateModal"
+          >
+            New project
+          </button>
+        </div>
 
         <div
           v-if='isProjectCreateModalOpen'

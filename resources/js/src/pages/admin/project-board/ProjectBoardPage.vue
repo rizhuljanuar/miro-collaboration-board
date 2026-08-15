@@ -1,6 +1,8 @@
 <script setup lang='ts'>
 import { RouterLink } from 'vue-router';
 
+import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
+
 interface ProjectPreview {
   id: number;
   name: string;
@@ -49,12 +51,17 @@ const projects: ProjectPreview[] = [
           </p>
         </div>
 
-        <button
-          type='button'
-          class='rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200'
-        >
-          New project
-        </button>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <ActiveUserMenu />
+
+          <button
+            type='button'
+            class='rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200'
+          >
+            New project
+          </button>
+        </div>
       </header>
 
       <section class='mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>

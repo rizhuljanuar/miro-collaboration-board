@@ -2,6 +2,7 @@ import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
 import { ApiResponse, AuthUser } from "@/types/auth";
+import { getCsrfToken } from "@/helpers/csrf";
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null);
@@ -56,6 +57,43 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null;
   }
 
+  async function logout(): Promise<void> {
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      throw new Error('CSRF token tidak ditemukan. Refresh halaman lalu coba lagi.');
+    }
+
+    errorMessage.value = null;
+
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+      });
+
+      if (response.status === 401) {
+        clearUser();
+
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Logout gagal. Silahkan coba lagi.');
+      }
+
+      clearUser();
+    } catch (error) {
+      errorMessage.value = error instanceof Error ? error.message : 'Terjadi kesalahan saat mencoba logout.';
+
+      throw error;
+    }
+  }
+
   return {
     user,
     isInitialized,
@@ -64,5 +102,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     fetchCurrentUser,
     clearUser,
+    logout,
   };
 });
