@@ -18,6 +18,20 @@ const oauthError = computed(() => {
 
   return errorMessages[error] ?? 'Terjadi kesalahan saat mencoba login dengan Google.';
 });
+
+const googleLoginUrl = computed(() => {
+  const redirect = route.query.redirect;
+
+  if (typeof redirect !== 'string') {
+    return '/auth/google';
+  }
+
+  if (!redirect.startsWith('/') || redirect.startsWith('//')) {
+    return '/auth/google';
+  }
+
+  return `/auth/google?redirect=${encodeURIComponent(redirect)}`;
+});
 </script>
 
 <template>
@@ -55,7 +69,7 @@ const oauthError = computed(() => {
       </div>
 
       <a
-        href='/auth/google'
+        :href='googleLoginUrl'
         class='mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100'
       >
         <span

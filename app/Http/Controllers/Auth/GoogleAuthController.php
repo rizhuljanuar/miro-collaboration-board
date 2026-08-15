@@ -14,8 +14,18 @@ use Throwable;
 
 class GoogleAuthController extends Controller
 {
-    public function redirect(): RedirectResponse
+    public function redirect(Request $request): RedirectResponse
     {
+        $redirect = $request->query('redirect');
+
+        if (
+            is_string($redirect)
+            && str_starts_with($redirect, '/')
+            && !str_starts_with($redirect, '//')
+        ) {
+            $request->session()->put('url.intended', $redirect);
+        }
+
         return Socialite::driver('google')
             ->scopes(['openid', 'profile', 'email'])
             ->redirect();

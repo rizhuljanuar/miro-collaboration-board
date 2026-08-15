@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 
+import { pinia } from '@/app/pinia';
+import { useAuthStore } from '@/stores/auth.store';
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -39,5 +42,32 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore(pinia);
+
+  if (!authStore.isInitialized) {
+    await authStore.fetchCurrentUser();
+  }
+
+  const requiresAuth = to.matched.some((route) => route.meta.requiresAuth === true);
+
+  if (requiresAuth && !authStore.isAuthenticated) {
+    return {
+      name: 'login',
+      query: {
+        redirect: to.fullPath,
+      },
+    };
+  }
+
+  if (to.name === 'login' && authStore.isAuthenticated) {
+    return {
+      name: 'projects',
+    };
+  }
+
+  return true;
+})
 
 export default router;
