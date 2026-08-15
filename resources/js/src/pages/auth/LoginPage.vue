@@ -1,5 +1,23 @@
 <script setup lang='ts'>
-const applicationName = 'Miro Collaboration Board';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+const oauthError = computed(() => {
+  const error = route.query.error;
+
+  const errorMessages: Record<string, string> = {
+    google_oauth_failed:'Login Google belum berhasil. Silakan coba lagi atau periksa konfigurasi OAuth.',
+    google_email_unavailable: 'Google tidak mengirim alamat email yang dapat digunakan untuk login.',
+  };
+
+  if (typeof error !== 'string') {
+    return null;
+  }
+
+  return errorMessages[error] ?? 'Terjadi kesalahan saat mencoba login dengan Google.';
+});
 </script>
 
 <template>
@@ -28,26 +46,35 @@ const applicationName = 'Miro Collaboration Board';
         visual workspace.
       </p>
 
-      <button
-        type='button'
+      <div
+        v-if='oauthError'
+        class='mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800'
+        role='alert'
+      >
+        {{ oauthError }}
+      </div>
+
+      <a
+        href='/auth/google'
         class='mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100'
       >
         <span
           class='grid size-6 place-items-center rounded-full bg-gradient-to-br from-blue-500 via-red-500 to-yellow-400 text-xs font-black text-white'
+          aria-hidden='true'
         >
           G
         </span>
 
         Continue with Google
-      </button>
+      </a>
 
       <p class='mt-6 text-center text-sm leading-6 text-slate-500'>
-        Google OAuth akan dihubungkan pada FASE 2 — Authentication.
+        Dengan melanjutkan, Anda akan diarahkan ke Google untuk melakukan autentikasi.
       </p>
 
       <div class='mt-8 border-t border-slate-100 pt-6 text-center'>
         <p class='text-sm text-slate-500'>
-          {{ applicationName }}
+            Miro Collaboration Board
         </p>
       </div>
     </section>
