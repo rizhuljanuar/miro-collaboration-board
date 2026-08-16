@@ -21,7 +21,7 @@ class GoogleAuthController extends Controller
         if (
             is_string($redirect)
             && str_starts_with($redirect, '/')
-            && !str_starts_with($redirect, '//')
+            && ! str_starts_with($redirect, '//')
         ) {
             $request->session()->put('url.intended', $redirect);
         }
@@ -44,7 +44,7 @@ class GoogleAuthController extends Controller
         $googleId = $googleUser->getId();
         $email = $googleUser->getEmail();
 
-        if (!is_string($googleId) || !is_string($email)) {
+        if (! is_string($googleId) || ! is_string($email)) {
             return redirect('/login?error=google_email_unavailable');
         }
 
@@ -55,8 +55,8 @@ class GoogleAuthController extends Controller
             ->orWhere('email', $email)
             ->first();
 
-        if (!$user) {
-            $user = new User();
+        if (! $user) {
+            $user = new User;
         }
 
         $user->forceFill([
