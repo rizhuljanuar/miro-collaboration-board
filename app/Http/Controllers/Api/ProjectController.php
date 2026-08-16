@@ -22,11 +22,14 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
+        $perPage = (int) $request->validated('per_page', 12);
+
         $projects = $user->projects()
             ->with('owner:id,name,avatar_url')
             ->withCount('members')
             ->orderByDesc('projects.updated_at')
-            ->paginate(12);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return ProjectResource::collection($projects);
     }
