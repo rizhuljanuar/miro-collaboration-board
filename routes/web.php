@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,12 @@ Route::prefix('api/auth')->group(function (): void {
         ->middleware('auth')
         ->name('api.auth.logout');
 });
+
+Route::middleware('auth')
+    ->prefix('api')
+    ->group(function (): void {
+        Route::apiResource('projects', ProjectController::class);
+    });
 
 Route::view('/login', 'welcome')->name('spa.login');
 

@@ -14,18 +14,14 @@ class ProjectResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $membership = $this->whenPivotLoaded(
-            'project_members',
-            fn (): array => [
-                'role' => $this->pivot->role,
-            ],
-        );
-
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'role' => $membership['role'] ?? null,
+            'role' => $this->when(
+                $this->pivotLoaded('project_members'),
+                fn (): string => $this->pivot->role,
+            ),
             'owner' => $this->whenLoaded('owner', function (): array {
                 return [
                     'id' => $this->owner->id,
