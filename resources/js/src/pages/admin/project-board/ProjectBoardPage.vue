@@ -2,8 +2,10 @@
 import { computed, onBeforeUnmount } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import { useProject } from '@/composables/useProject';
+
+import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
+import ShareBoardButton from '@/components/ShareBoardButton.vue';
 
 const route = useRoute();
 
@@ -56,13 +58,11 @@ onBeforeUnmount(() => {
       <div class='flex flex-wrap items-center gap-3'>
         <ActiveUserMenu />
 
-        <button
-          type='button'
-          class='rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60'
-          :disabled='!project'
-        >
-          Share board
-        </button>
+        <ShareBoardButton
+            v-if='project'
+            :project-id='project.id'
+            :project-name='project.name'
+        />
       </div>
     </header>
 
