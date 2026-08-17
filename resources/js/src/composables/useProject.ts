@@ -58,9 +58,7 @@ export function useProject(projectId: Ref<number | null>) {
       }
 
       errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : 'Terjadi kesalahan saat memuat detail project.';
+        error instanceof Error ? error.message : 'Terjadi kesalahan saat memuat detail project.';
     } finally {
       if (activeController === controller) {
         isLoading.value = false;

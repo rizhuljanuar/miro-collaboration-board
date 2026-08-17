@@ -1,6 +1,6 @@
-import { ref } from "vue";
+import { ref } from 'vue';
 
-import { PaginatedApiResponse, PaginationMeta, Project } from "@/types/project";
+import { PaginatedApiResponse, PaginationMeta, Project } from '@/types/project';
 
 const DEFAULT_PER_PAGE = 12;
 
@@ -55,7 +55,8 @@ export function useProjects() {
       projects.value = [];
       pagination.value = null;
 
-      errorMessage.value = error instanceof Error ? error.message : 'Terjadi kesalahan saat memuat daftar project.';
+      errorMessage.value =
+        error instanceof Error ? error.message : 'Terjadi kesalahan saat memuat daftar project.';
     } finally {
       if (activeController === controller) {
         isLoading.value = false;

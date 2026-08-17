@@ -1,7 +1,7 @@
-import { createApp } from "vue";
+import { createApp } from 'vue';
 
-import App from "@/app/App.vue";
-import { pinia } from "@/app/pinia";
+import App from '@/app/App.vue';
+import { pinia } from '@/app/pinia';
 import router from '@/router';
 
 import '../css/app.css';

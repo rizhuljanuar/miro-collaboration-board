@@ -1,8 +1,8 @@
-import { computed, ref } from "vue";
-import { defineStore } from "pinia";
+import { computed, ref } from 'vue';
+import { defineStore } from 'pinia';
 
-import { ApiResponse, AuthUser } from "@/types/auth";
-import { getCsrfToken } from "@/helpers/csrf";
+import { ApiResponse, AuthUser } from '@/types/auth';
+import { getCsrfToken } from '@/helpers/csrf';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null);
@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     isLoading.value = true;
     errorMessage.value = null;
-    
+
     try {
       const response = await fetch('/api/auth/user', {
         credentials: 'same-origin',
@@ -44,9 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null;
 
       errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : 'Terjadi kesalahan saat memeriksa status login.';
+        error instanceof Error ? error.message : 'Terjadi kesalahan saat memeriksa status login.';
     } finally {
       isLoading.value = false;
       isInitialized.value = true;
@@ -88,7 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       clearUser();
     } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : 'Terjadi kesalahan saat mencoba logout.';
+      errorMessage.value =
+        error instanceof Error ? error.message : 'Terjadi kesalahan saat mencoba logout.';
 
       throw error;
     }

@@ -68,6 +68,6 @@ router.beforeEach(async (to) => {
   }
 
   return true;
-})
+});
 
 export default router;
