@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 import { RouterLink } from 'vue-router';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
+import CreateProjectModal from '@/components/CreateProjectModal.vue';
 import { useProjects } from '@/composables/useProjects';
 import { useUiStore } from '@/stores/ui.store';
 import type { Project } from '@/types/project';
@@ -46,6 +47,12 @@ function getProjectInitial(project: Project): string {
   return project.name.trim().charAt(0).toUpperCase() || 'P';
 }
 
+async function handleProjectCreated(): Promise<void> {
+    uiStore.closeProjectCreateModal();
+
+    await loadProjects(1);
+}
+
 onMounted(() => {
   void loadProjects();
 });
@@ -86,27 +93,11 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <section
+      <CreateProjectModal
         v-if='isProjectCreateModalOpen'
-        class='mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-950'
-      >
-        <div>
-          <p class='font-semibold'>Create project form akan dibuat pada langkah berikutnya.</p>
-
-          <p class='mt-1 text-sm text-blue-800'>
-            API create project sudah siap. Kita akan menghubungkannya ke form Vue pada
-            FASE 3.6.
-          </p>
-        </div>
-
-        <button
-          type='button'
-          class='rounded-lg bg-white px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100'
-          @click='uiStore.closeProjectCreateModal'
-        >
-          Close
-        </button>
-      </section>
+        @close='uiStore.closeProjectCreateModal'
+        @created='handleProjectCreated'
+      />
 
       <section
         v-if='isLoading && !hasProjects'

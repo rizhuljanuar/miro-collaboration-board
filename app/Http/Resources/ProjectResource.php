@@ -18,8 +18,8 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'role' => $this->when(
-                $this->pivotLoaded('project_members'),
+            'role' => $this->whenPivotLoaded(
+                'project_members',
                 fn (): string => $this->pivot->role,
             ),
             'owner' => $this->whenLoaded('owner', function (): array {
