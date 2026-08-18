@@ -14,6 +14,16 @@ import BoardColorPalette from '@/pages/admin/project-board/BoardColorPalette.vue
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
+const canUndo = ref(false);
+const canRedo = ref(false);
+
+function handleUndo(): void {
+  // History action akan diimplementasikan saat sticky note dan canvas drawing tersedia.
+}
+
+function handleRedo(): void {
+  // History action akan diimplementasikan saat sticky note dan canvas drawing tersedia.
+}
 
 const projectId = computed<number | null>(() => {
   const value = Number(route.params.projectId);
@@ -229,7 +239,12 @@ onBeforeUnmount(() => {
           v-model:selected-tool="selectedTool"
           :can-edit="canEditBoard"
           :collaborators-count="project.members_count ?? 1"
+          :can-undo="canUndo"
+          :can-redo="canRedo"
+          @undo="handleUndo"
+          @redo="handleRedo"
         />
+
         <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-4 md:p-6">
           <div
             class="relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"

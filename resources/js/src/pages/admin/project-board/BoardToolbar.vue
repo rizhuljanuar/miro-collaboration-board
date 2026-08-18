@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { BoardTool } from '@/types/board';
 
+import BoardHistoryControls from '@/pages/admin/project-board/BoardHistoryControls.vue';
+
 interface ToolbarItem {
   id: BoardTool;
   label: string;
@@ -13,10 +15,14 @@ const props = defineProps<{
   selectedTool: BoardTool;
   canEdit: boolean;
   collaboratorsCount: number;
+  canUndo: boolean;
+  canRedo: boolean;
 }>();
 
 const emit = defineEmits<{
   'update:selectedTool': [tool: BoardTool];
+  undo: [];
+  redo: [];
 }>();
 
 const tools: ToolbarItem[] = [
@@ -99,23 +105,12 @@ function selectTool(tool: BoardTool): void {
 
     <div class="hidden h-7 w-px bg-slate-200 sm:block"></div>
 
-    <button
-      type="button"
-      class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-      title="Undo action"
-      disabled
-    >
-      Undo
-    </button>
-
-    <button
-      type="button"
-      class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-      title="Redo action"
-      disabled
-    >
-      Redo
-    </button>
+    <BoardHistoryControls
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      @undo="emit('undo')"
+      @redo="emit('redo')"
+    />
 
     <div class="ml-auto flex items-center gap-2">
       <span
