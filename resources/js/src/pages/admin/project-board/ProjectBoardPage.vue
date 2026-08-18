@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { useProject } from '@/composables/useProject';
@@ -7,12 +7,42 @@ import { useProject } from '@/composables/useProject';
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
 
+import BoardToolbar from '@/pages/admin/project-board/BoardToolbar.vue';
+import type { BoardTool } from '@/types/board';
+
 const route = useRoute();
+const selectedTool = ref<BoardTool>('cursor');
 
 const projectId = computed<number | null>(() => {
   const value = Number(route.params.projectId);
 
   return Number.isInteger(value) && value > 0 ? value : null;
+});
+
+const canEditBoard = computed(() => {
+    return project.value?.role === 'owner' || project.value?.role === 'editor';
+});
+
+const workspaceCursorClass = computed(() => {
+    const cursors: Record<BoardTool, string> = {
+        cursor: 'cursor-default',
+        'sticky-note': 'cursor-crosshair',
+        text: 'cursor-text',
+        draw: 'cursor-crosshair',
+    };
+
+    return cursors[selectedTool.value];
+});
+
+const workspaceToolMessage = computed(() => {
+    const messages: Record<BoardTool, string> = {
+        cursor: 'Cursor mode aktif. Pilih atau pindahkan item board nanti.',
+        'sticky-note': 'Sticky note mode aktif. Klik workspace untuk menambahkan sticky note.',
+        text: 'Text editor mode aktif. Klik workspace untuk menambahkan text editor.',
+        draw: 'Draw mode aktif. Drag pada workspace untuk menggambar.',
+    };
+
+    return messages[selectedTool.value];
 });
 
 const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
@@ -183,88 +213,17 @@ onBeforeUnmount(() => {
       </aside>
 
       <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div
-          class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-3 shadow-sm"
-          role="toolbar"
-          aria-label="Board tools"
-        >
-          <button
-            type="button"
-            class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-200"
-            title="Select tool"
-          >
-            Select
-          </button>
-
-          <div class="hidden h-7 w-px bg-slate-200 sm:block"></div>
-
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-amber-100 hover:text-amber-900 focus:outline-none focus:ring-4 focus:ring-amber-100"
-            title="Add sticky note"
-          >
-            Sticky note
-          </button>
-
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-violet-100 hover:text-violet-900 focus:outline-none focus:ring-4 focus:ring-violet-100"
-            title="Add text editor"
-          >
-            Text
-          </button>
-
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-cyan-100 hover:text-cyan-900 focus:outline-none focus:ring-4 focus:ring-cyan-100"
-            title="Draw on board"
-          >
-            Draw
-          </button>
-
-          <div class="hidden h-7 w-px bg-slate-200 sm:block"></div>
-
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
-            title="Undo action"
-            disabled
-          >
-            Undo
-          </button>
-
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
-            title="Redo action"
-            disabled
-          >
-            Redo
-          </button>
-
-          <div class="ml-auto flex items-center gap-2">
-            <span
-              class="hidden rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 sm:inline-flex"
-            >
-              Board ready
-            </span>
-
-            <span
-              class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
-            >
-              {{ project.members_count ?? 1 }}
-              collaborator{{ (project.members_count ?? 1) === 1 ? '' : 's' }}
-            </span>
-          </div>
-        </div>
-
+        <BoardToolbar
+          v-model:selected-tool='selectedTool'
+          :can-edit='canEditBoard'
+          :collaborators-count='project.members_count ?? 1'
+        />
         <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-4 md:p-6">
           <div
-            class="relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-            style="
-              background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-              background-size: 24px 24px;
-            "
+            class='relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm'
+            :class='workspaceCursorClass'
+            style='background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px;'
+            :data-board-tool='selectedTool'
           >
             <div
               class="absolute left-6 top-6 max-w-sm rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-lg shadow-blue-950/5 backdrop-blur"
@@ -300,11 +259,21 @@ onBeforeUnmount(() => {
                   Your board workspace is ready
                 </h2>
 
-                <p class="mt-3 leading-7 text-slate-600">
-                  Pada langkah berikutnya, kita akan menambahkan toolbar item, color palette,
-                  undo/redo controls, sticky notes, dan text editor ke area ini.
+                <p class='mt-3 leading-7 text-slate-600'>
+                  {{ workspaceToolMessage }}
+                </p>
+
+                <p class='mt-3 text-sm leading-6 text-slate-500'>
+                  Interaksi pembuatan item akan ditambahkan bertahap pada fase sticky notes,
+                  mini text editor, dan canvas drawing.
                 </p>
               </div>
+              <span
+                class='mt-5 inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold capitalize text-slate-700'
+                aria-live='polite'
+              >
+                Active tool: {{ selectedTool.replace('-', ' ') }}
+              </span>
             </div>
           </div>
         </div>
