@@ -79,9 +79,9 @@ onBeforeUnmount(() => {
 <template>
   <main class="flex min-h-screen flex-col bg-slate-100">
     <header
-      class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4"
+      class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:gap-4 sm:px-6 sm:py-4"
     >
-      <div class="flex min-w-0 items-center gap-4">
+      <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
         <RouterLink
           :to="{ name: 'projects' }"
           class="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
           ← Projects
         </RouterLink>
 
-        <div class="h-8 w-px shrink-0 bg-slate-200"></div>
+        <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block"></div>
 
         <div class="min-w-0">
           <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Project board</p>
@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
 
     <section v-else-if="project" class="flex min-h-0 flex-1">
       <aside
-        class="hidden w-16 shrink-0 flex-col items-center border-r border-slate-200 bg-white py-4 md:flex"
+        class="hidden w-16 shrink-0 flex-col items-center border-r border-slate-200 bg-white py-4 lg:flex"
         aria-label="Board sidebar"
       >
         <button
@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
             <BoardColorPalette
               v-if="selectedTool === 'sticky-note' && canEditBoard"
               v-model="selectedStickyNoteColor"
-              class="absolute bottom-6 left-6 z-10"
+              class="absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-6"
             />
           </template>
         </BoardWorkspace>

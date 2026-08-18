@@ -67,16 +67,19 @@ function selectTool(tool: BoardTool): void {
 
 <template>
   <div
-    class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-3 shadow-sm"
+    class="flex min-w-0 flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-4"
     role="toolbar"
     aria-label="Board tools"
   >
-    <div class="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+    <div
+      class="flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1"
+      aria-label="Board interaction tools"
+    >
       <button
         v-for="tool in tools"
         :key="tool.id"
         type="button"
-        class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-45"
+        class="inline-flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-45 sm:px-3"
         :class="
           selectedTool === tool.id
             ? 'bg-slate-900 text-white shadow-sm focus:ring-slate-200'
@@ -93,17 +96,17 @@ function selectTool(tool: BoardTool): void {
           {{ tool.icon }}
         </span>
 
-        <span class="hidden lg:inline">
+        <span class="hidden md:inline">
           {{ tool.label }}
         </span>
 
-        <span class="lg:hidden">
+        <span class="md:hidden">
           {{ tool.shortLabel }}
         </span>
       </button>
     </div>
 
-    <div class="hidden h-7 w-px bg-slate-200 sm:block"></div>
+    <div class="hidden h-7 w-px bg-slate-200 lg:block"></div>
 
     <BoardHistoryControls
       :can-undo="canUndo"
@@ -112,17 +115,17 @@ function selectTool(tool: BoardTool): void {
       @redo="emit('redo')"
     />
 
-    <div class="ml-auto flex items-center gap-2">
+    <div class="ml-auto hidden items-center gap-2 lg:flex">
       <span
         v-if="canEdit"
-        class="hidden rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 sm:inline-flex"
+        class="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"
       >
         Edit mode
       </span>
 
       <span
         v-else
-        class="hidden rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex"
+        class="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
       >
         View only
       </span>
@@ -132,5 +135,12 @@ function selectTool(tool: BoardTool): void {
         collaborator{{ collaboratorsCount === 1 ? '' : 's' }}
       </span>
     </div>
+
+    <span
+      class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 lg:hidden"
+    >
+      {{ collaboratorsCount }}
+      collaborator{{ collaboratorsCount === 1 ? '' : 's' }}
+    </span>
   </div>
 </template>

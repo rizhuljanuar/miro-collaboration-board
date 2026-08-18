@@ -11,9 +11,9 @@ defineProps<{
 </script>
 
 <template>
-  <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-4 md:p-6">
+  <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-2 sm:p-4 md:p-6">
     <div
-      class="relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      class="relative min-h-[560px] min-w-[640px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:min-h-[620px] sm:min-w-[720px] sm:rounded-2xl lg:min-w-[960px]"
       :class="workspaceCursorClass"
       :data-board-tool="selectedTool"
       style="
@@ -24,17 +24,17 @@ defineProps<{
       <slot name="overlay" />
 
       <div
-        class="absolute left-6 top-6 z-10 max-w-sm rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-lg shadow-blue-950/5 backdrop-blur"
+        class="absolute left-3 top-3 z-10 max-w-[calc(100%-1.5rem)] rounded-xl border border-blue-100 bg-white/95 p-4 shadow-lg shadow-blue-950/5 backdrop-blur sm:left-6 sm:top-6 sm:max-w-sm sm:rounded-2xl sm:p-5"
       >
         <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
           {{ project.role ?? 'member' }} workspace
         </p>
 
-        <h2 class="mt-2 text-xl font-bold text-slate-950">
+        <h2 class="mt-2 line-clamp-2 text-lg font-bold text-slate-950 sm:text-xl">
           {{ project.name }}
         </h2>
 
-        <p class="mt-2 text-sm leading-6 text-slate-600">
+        <p class="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
           {{
             project.description ||
             'Mulai tambahkan sticky note, text editor, atau drawing ke board ini.'
@@ -43,17 +43,17 @@ defineProps<{
       </div>
 
       <div
-        class="absolute inset-0 grid place-items-center px-6 pt-36 text-center"
+        class="absolute inset-0 grid place-items-center px-6 pb-6 pt-48 text-center sm:px-10 sm:pt-40"
         aria-label="Board workspace"
       >
         <div class="max-w-md">
           <div
-            class="mx-auto grid size-16 place-items-center rounded-2xl bg-blue-100 text-3xl font-bold text-blue-700"
+            class="mx-auto grid size-14 place-items-center rounded-2xl bg-blue-100 text-2xl font-bold text-blue-700 sm:size-16 sm:text-3xl"
           >
             +
           </div>
 
-          <h2 class="mt-5 text-2xl font-bold tracking-tight text-slate-950">
+          <h2 class="mt-5 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
             Your board workspace is ready
           </h2>
 
