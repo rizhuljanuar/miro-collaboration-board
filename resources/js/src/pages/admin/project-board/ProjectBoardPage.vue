@@ -3,15 +3,17 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { useProject } from '@/composables/useProject';
+import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
 
 import BoardToolbar from '@/pages/admin/project-board/BoardToolbar.vue';
-import type { BoardTool } from '@/types/board';
+import BoardColorPalette from '@/pages/admin/project-board/BoardColorPalette.vue';
 
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
+const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
 
 const projectId = computed<number | null>(() => {
   const value = Number(route.params.projectId);
@@ -20,29 +22,39 @@ const projectId = computed<number | null>(() => {
 });
 
 const canEditBoard = computed(() => {
-    return project.value?.role === 'owner' || project.value?.role === 'editor';
+  return project.value?.role === 'owner' || project.value?.role === 'editor';
+});
+
+const selectedStickyNoteColorLabel = computed(() => {
+  return (
+    STICKY_NOTE_COLOR_OPTIONS.find((color) => color.value === selectedStickyNoteColor.value)
+      ?.label ?? 'Yellow'
+  );
 });
 
 const workspaceCursorClass = computed(() => {
-    const cursors: Record<BoardTool, string> = {
-        cursor: 'cursor-default',
-        'sticky-note': 'cursor-crosshair',
-        text: 'cursor-text',
-        draw: 'cursor-crosshair',
-    };
+  const cursors: Record<BoardTool, string> = {
+    cursor: 'cursor-default',
+    'sticky-note': 'cursor-crosshair',
+    text: 'cursor-text',
+    draw: 'cursor-crosshair',
+  };
 
-    return cursors[selectedTool.value];
+  return cursors[selectedTool.value];
 });
 
 const workspaceToolMessage = computed(() => {
-    const messages: Record<BoardTool, string> = {
-        cursor: 'Cursor mode aktif. Pilih atau pindahkan item board nanti.',
-        'sticky-note': 'Sticky note mode aktif. Klik workspace untuk menambahkan sticky note.',
-        text: 'Text editor mode aktif. Klik workspace untuk menambahkan text editor.',
-        draw: 'Draw mode aktif. Drag pada workspace untuk menggambar.',
-    };
+  const messages: Record<Exclude<BoardTool, 'sticky-note'>, string> = {
+    cursor: 'Cursor mode aktif. Pilih atau pindahkan item board nanti.',
+    text: 'Text editor mode aktif. Klik workspace untuk menambahkan text editor.',
+    draw: 'Draw mode aktif. Drag pada workspace untuk menggambar.',
+  };
 
-    return messages[selectedTool.value];
+  if (selectedTool.value === 'sticky-note') {
+    return `Sticky note mode aktif dengan warna ${selectedStickyNoteColorLabel.value}. Klik workspace untuk menambahkan sticky note.`;
+  }
+
+  return messages[selectedTool.value];
 });
 
 const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
@@ -214,17 +226,26 @@ onBeforeUnmount(() => {
 
       <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
         <BoardToolbar
-          v-model:selected-tool='selectedTool'
-          :can-edit='canEditBoard'
-          :collaborators-count='project.members_count ?? 1'
+          v-model:selected-tool="selectedTool"
+          :can-edit="canEditBoard"
+          :collaborators-count="project.members_count ?? 1"
         />
         <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-4 md:p-6">
           <div
-            class='relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm'
-            :class='workspaceCursorClass'
-            style='background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px;'
-            :data-board-tool='selectedTool'
+            class="relative min-h-[620px] min-w-[760px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            :class="workspaceCursorClass"
+            style="
+              background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+              background-size: 24px 24px;
+            "
+            :data-board-tool="selectedTool"
           >
+            <BoardColorPalette
+              v-if="selectedTool === 'sticky-note' && canEditBoard"
+              v-model="selectedStickyNoteColor"
+              class="absolute bottom-6 left-6 z-10"
+            />
+
             <div
               class="absolute left-6 top-6 max-w-sm rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-lg shadow-blue-950/5 backdrop-blur"
             >
@@ -259,18 +280,18 @@ onBeforeUnmount(() => {
                   Your board workspace is ready
                 </h2>
 
-                <p class='mt-3 leading-7 text-slate-600'>
+                <p class="mt-3 leading-7 text-slate-600">
                   {{ workspaceToolMessage }}
                 </p>
 
-                <p class='mt-3 text-sm leading-6 text-slate-500'>
-                  Interaksi pembuatan item akan ditambahkan bertahap pada fase sticky notes,
-                  mini text editor, dan canvas drawing.
+                <p class="mt-3 text-sm leading-6 text-slate-500">
+                  Interaksi pembuatan item akan ditambahkan bertahap pada fase sticky notes, mini
+                  text editor, dan canvas drawing.
                 </p>
               </div>
               <span
-                class='mt-5 inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold capitalize text-slate-700'
-                aria-live='polite'
+                class="mt-5 inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold capitalize text-slate-700"
+                aria-live="polite"
               >
                 Active tool: {{ selectedTool.replace('-', ' ') }}
               </span>
