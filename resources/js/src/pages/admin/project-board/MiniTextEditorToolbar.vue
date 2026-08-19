@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { InlineTextFormat } from '@/types/mini-text-editor';
+import type { InlineTextFormat, TextEditorHeadingTag } from '@/types/mini-text-editor';
 
 interface ToolbarAction {
   id: string;
   label: string;
   icon: string;
   format?: InlineTextFormat;
+  heading?: TextEditorHeadingTag;
 }
 
 interface ToolbarGroup {
@@ -19,6 +20,7 @@ defineProps<{
 
 const emit = defineEmits<{
   format: [format: InlineTextFormat];
+  heading: [tag: TextEditorHeadingTag];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -119,6 +121,14 @@ function applyFormat(format?: InlineTextFormat): void {
 
   emit('format', format);
 }
+
+function applyHeading(tag?: TextEditorHeadingTag): void {
+  if (!tag) {
+    return;
+  }
+
+  emit('heading', tag);
+}
 </script>
 
 <template>
@@ -135,17 +145,20 @@ function applyFormat(format?: InlineTextFormat): void {
           type="button"
           class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           :class="
-            action.format
+            action.format || action.heading
               ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
               : 'text-slate-400'
           "
-          :disabled="!canEdit || !action.format"
-          :aria-label="action.label"
+          :disabled="!canEdit || (!action.format && !action.heading)"
           :title="
-            action.format ? action.label : `${action.label} will be implemented in a later step`
+            action.format || action.heading
+              ? action.label
+              : `${action.label} will be implemented in a later step`
           "
-          @pointerdown.prevent
-          @click="applyFormat(action.format)"
+          @click="
+            applyFormat(action.format);
+            applyHeading(action.heading);
+          "
         >
           <span
             :class="{

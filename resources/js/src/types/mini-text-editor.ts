@@ -4,6 +4,10 @@ export const INLINE_TEXT_FORMATS = ['bold', 'italic', 'underline'] as const;
 
 export type InlineTextFormat = (typeof INLINE_TEXT_FORMATS)[number];
 
+export const TEXT_EDITOR_HEADING_TAGS = ['H1', 'H2', 'H3'] as const;
+
+export type TextEditorHeadingTag = (typeof TEXT_EDITOR_HEADING_TAGS)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;

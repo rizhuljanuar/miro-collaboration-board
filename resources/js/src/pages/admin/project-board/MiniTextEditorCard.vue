@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
 
-import type { MiniTextEditor } from '@/types/mini-text-editor';
+import type { MiniTextEditor, TextEditorHeadingTag } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
 import MiniTextEditorToolbar from '@/pages/admin/project-board/MiniTextEditorToolbar.vue';
 import type { InlineTextFormat } from '@/types/mini-text-editor';
@@ -196,6 +196,18 @@ function applyInlineFormat(format: InlineTextFormat): void {
   }
 }
 
+function applyHeading(tag: TextEditorHeadingTag): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const commandApplied = document.execCommand('formatBlock', false, tag);
+
+  if (commandApplied) {
+    emitEditorContent();
+  }
+}
+
 function cleanupPointerInteractions(): void {
   if (dragState.value && dragHandle.value?.hasPointerCapture(dragState.value.pointerId)) {
     dragHandle.value.releasePointerCapture(dragState.value.pointerId);
@@ -255,7 +267,11 @@ onBeforeUnmount(() => {
       </button>
     </header>
 
-    <MiniTextEditorToolbar :can-edit="canEdit" @format="applyInlineFormat" />
+    <MiniTextEditorToolbar
+      :can-edit="canEdit"
+      @format="applyInlineFormat"
+      @heading="applyHeading"
+    />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div
         ref="editorContent"
