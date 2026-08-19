@@ -16,7 +16,7 @@ export const TEXT_EDITOR_LIST_TYPES = ['unordered'] as const;
 
 export type TextEditorListType = (typeof TEXT_EDITOR_LIST_TYPES)[number];
 
-export const TEXT_EDITOR_INSERT_ACTIONS = ['link'] as const;
+export const TEXT_EDITOR_INSERT_ACTIONS = ['link', 'image'] as const;
 
 export type TextEditorInsertAction = (typeof TEXT_EDITOR_INSERT_ACTIONS)[number];
 

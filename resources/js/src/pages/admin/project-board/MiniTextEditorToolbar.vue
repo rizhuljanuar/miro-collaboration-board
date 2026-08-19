@@ -129,6 +129,7 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'image',
         label: 'Insert image',
         icon: '▧',
+        insert: 'image',
       },
     ],
   },
@@ -195,7 +196,11 @@ function applyInsert(action?: TextEditorInsertAction): void {
           "
           :disabled="
             !canEdit ||
-            (!action.format && !action.heading && !action.alignment && !action.list && !action.insert)
+            (!action.format &&
+              !action.heading &&
+              !action.alignment &&
+              !action.list &&
+              !action.insert)
           "
           :title="
             action.format || action.heading || action.alignment || action.list || action.insert

@@ -273,6 +273,20 @@ function normalizeSafeLinkUrl(value: string): string | null {
   }
 }
 
+function normalizeSafeImageUrl(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+
+    if (!['https:', 'http:'].includes(url.protocol)) {
+      return null;
+    }
+
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 function insertLink(): void {
   if (!props.canEdit || !selectionBelongsToEditor()) {
     return;
@@ -316,9 +330,50 @@ function insertLink(): void {
   emitEditorContent();
 }
 
+function insertImage(): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const rawUrl = window.prompt(
+    'Masukkan URL gambar. Gunakan URL dengan https:// atau http://',
+    'https://',
+  );
+
+  if (rawUrl === null) {
+    return;
+  }
+
+  const safeUrl = normalizeSafeImageUrl(rawUrl);
+
+  if (!safeUrl) {
+    editorErrorMessage.value =
+      'URL gambar tidak valid. Gunakan URL dengan protocol https:// atau http://.';
+
+    return;
+  }
+
+  const commandApplied = document.execCommand('insertImage', false, safeUrl);
+
+  if (!commandApplied) {
+    editorErrorMessage.value = 'Gambar tidak dapat disisipkan. Silakan coba lagi.';
+
+    return;
+  }
+
+  editorErrorMessage.value = null;
+  emitEditorContent();
+}
+
 function handleInsertAction(action: TextEditorInsertAction): void {
   if (action === 'link') {
     insertLink();
+
+    return;
+  }
+
+  if (action === 'image') {
+    insertImage();
   }
 }
 
@@ -396,7 +451,7 @@ onBeforeUnmount(() => {
         aria-multiline="true"
         aria-label="Mini rich text editor content"
         :contenteditable="canEdit"
-        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1"
+        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1 [&_img]:my-3 [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-slate-200"
         :class="canEdit ? 'cursor-text' : 'cursor-default'"
         @pointerdown.stop
         @input="handleEditorInput"
