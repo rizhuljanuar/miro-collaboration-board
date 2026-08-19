@@ -7,7 +7,7 @@ import { useStickyNotes } from '@/composables/useStickyNotes';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
-import type { BoardPosition } from '@/types/sticky-note';
+import type { BoardPosition, BoardSize } from '@/types/sticky-note';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
@@ -20,7 +20,7 @@ import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
-const { stickyNotes, createStickyNote, moveStickyNote, deleteStickyNote } = useStickyNotes();
+const { stickyNotes, createStickyNote, moveStickyNote, resizeStickyNote, deleteStickyNote } = useStickyNotes();
 const canUndo = ref(false);
 const canRedo = ref(false);
 
@@ -91,6 +91,13 @@ function handleCreateStickyNote(position: BoardPosition): void {
   });
 
   selectedTool.value = 'cursor';
+}
+
+function handleResizeStickyNote(payload: {
+    id: string;
+    size: BoardSize;
+}): void {
+    resizeStickyNote(payload.id, payload.size);
 }
 
 function handleMoveStickyNote(payload: { id: string; position: BoardPosition }): void {
@@ -297,7 +304,9 @@ onBeforeUnmount(() => {
             :key="stickyNote.id"
             :sticky-note="stickyNote"
             :draggable="canEditBoard"
+            :resizable='canEditBoard'
             @move="handleMoveStickyNote"
+            @resize='handleResizeStickyNote'
             @delete="handleDeleteStickyNote"
           />
         </BoardWorkspace>
