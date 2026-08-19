@@ -9,9 +9,11 @@ const props = defineProps<{
   draggable: boolean;
   resizable: boolean;
   editable: boolean;
+  selected: boolean;
 }>();
 
 const emit = defineEmits<{
+  select: [stickyNoteId: string];
   move: [payload: { id: string; position: BoardPosition }];
   resize: [payload: { id: string; size: BoardSize }];
   'update-body': [payload: { id: string; body: string }];
@@ -55,6 +57,10 @@ const stickyNoteColorClass = computed(() => {
   );
 });
 
+function selectStickyNote(): void {
+  emit('select', props.stickyNote.id);
+}
+
 function startDrag(event: PointerEvent): void {
   if (!props.draggable || event.button !== 0 || resizeState.value !== null) {
     return;
@@ -65,6 +71,8 @@ function startDrag(event: PointerEvent): void {
   if (!(handle instanceof HTMLElement)) {
     return;
   }
+
+  selectStickyNote();
 
   event.preventDefault();
 
@@ -129,6 +137,8 @@ function startResize(event: PointerEvent): void {
     return;
   }
 
+  selectStickyNote();
+
   event.preventDefault();
 
   resizeState.value = {
@@ -184,6 +194,12 @@ function handleLostPointerCapture(): void {
   resizeState.value = null;
 }
 
+function handleBodyPointerDown(event: PointerEvent): void {
+  event.stopPropagation();
+
+  selectStickyNote();
+}
+
 function updateStickyNoteBody(event: Event): void {
   if (!props.editable) {
     return;
@@ -217,8 +233,13 @@ onBeforeUnmount(() => {
 
 <template>
   <article
-    class="absolute z-20 flex overflow-hidden rounded-xl border border-slate-950/10 shadow-lg shadow-slate-950/15"
-    :class="stickyNoteColorClass"
+    class="absolute z-20 flex overflow-hidden rounded-xl border border-slate-950/10 shadow-lg shadow-slate-950/15 transition-shadow"
+    :class="[
+      stickyNoteColorClass,
+      selected
+        ? 'ring-2 ring-slate-950 ring-offset-2 ring-offset-slate-100 shadow-xl'
+        : 'hover:shadow-xl',
+    ]"
     :style="stickyNoteStyle"
     :aria-label="`Sticky note: ${stickyNote.body || 'empty'}`"
   >
@@ -259,7 +280,7 @@ onBeforeUnmount(() => {
           :placeholder="editable ? 'Tulis ide Anda di sini...' : 'Tidak ada isi sticky note.'"
           class="h-full min-h-0 w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-slate-950 outline-none placeholder:text-slate-900/45 focus:ring-0 disabled:cursor-not-allowed"
           :class="editable ? 'cursor-text' : 'cursor-default'"
-          @pointerdown.stop
+          @pointerdown="handleBodyPointerDown"
           @input="updateStickyNoteBody"
         ></textarea>
       </div>

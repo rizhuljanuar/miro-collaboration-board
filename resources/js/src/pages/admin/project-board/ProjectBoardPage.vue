@@ -20,12 +20,56 @@ import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
+const selectedStickyNoteId = ref<string | null>(null);
+
+const selectedStickyNote = computed(() => {
+  return (
+    stickyNotes.value.find((stickyNote) => {
+      return stickyNote.id === selectedStickyNoteId.value;
+    }) ?? null
+  );
+});
+
+const isStickyNotePaletteVisible = computed(() => {
+  return (
+    canEditBoard.value &&
+    (selectedTool.value === 'sticky-note' || selectedStickyNote.value !== null)
+  );
+});
+
+const paletteColor = computed<StickyNoteColor>({
+  get(): StickyNoteColor {
+    if (selectedTool.value === 'sticky-note') {
+      return selectedStickyNoteColor.value;
+    }
+
+    return selectedStickyNote.value?.color ?? selectedStickyNoteColor.value;
+  },
+
+  set(color: StickyNoteColor): void {
+    if (selectedTool.value === 'sticky-note') {
+      selectedStickyNoteColor.value = color;
+
+      return;
+    }
+
+    if (!selectedStickyNote.value) {
+      selectedStickyNoteColor.value = color;
+
+      return;
+    }
+
+    updateStickyNoteColor(selectedStickyNote.value.id, color);
+  },
+});
+
 const {
   stickyNotes,
   createStickyNote,
   moveStickyNote,
   resizeStickyNote,
   updateStickyNoteBody,
+  updateStickyNoteColor,
   deleteStickyNote,
 } = useStickyNotes();
 const canUndo = ref(false);
@@ -89,7 +133,7 @@ function handleCreateStickyNote(position: BoardPosition): void {
     return;
   }
 
-  createStickyNote({
+  const stickyNote = createStickyNote({
     color: selectedStickyNoteColor.value,
     position: {
       x: Math.max(0, position.x - STICKY_NOTE_DEFAULT_SIZE.width / 2),
@@ -97,6 +141,7 @@ function handleCreateStickyNote(position: BoardPosition): void {
     },
   });
 
+  selectedStickyNoteId.value = stickyNote.id;
   selectedTool.value = 'cursor';
 }
 
@@ -112,12 +157,20 @@ function handleUpdateStickyNoteBody(payload: { id: string; body: string }): void
   updateStickyNoteBody(payload.id, payload.body);
 }
 
+function handleSelectStickyNote(stickyNoteId: string): void {
+  selectedStickyNoteId.value = stickyNoteId;
+}
+
 function handleMoveStickyNote(payload: { id: string; position: BoardPosition }): void {
   moveStickyNote(payload.id, payload.position);
 }
 
 function handleDeleteStickyNote(stickyNoteId: string): void {
-  deleteStickyNote(stickyNoteId);
+  const deleted = deleteStickyNote(stickyNoteId);
+
+  if (deleted && selectedStickyNoteId.value === stickyNoteId) {
+    selectedStickyNoteId.value = null;
+  }
 }
 
 onBeforeUnmount(() => {
@@ -305,8 +358,8 @@ onBeforeUnmount(() => {
         >
           <template #overlay>
             <BoardColorPalette
-              v-if="selectedTool === 'sticky-note' && canEditBoard"
-              v-model="selectedStickyNoteColor"
+              v-if="isStickyNotePaletteVisible"
+              v-model="paletteColor"
               class="absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-6"
             />
           </template>
@@ -315,9 +368,11 @@ onBeforeUnmount(() => {
             v-for="stickyNote in stickyNotes"
             :key="stickyNote.id"
             :sticky-note="stickyNote"
+            :selected="stickyNote.id === selectedStickyNoteId"
             :draggable="canEditBoard"
             :resizable="canEditBoard"
             :editable="canEditBoard"
+            @select="handleSelectStickyNote"
             @move="handleMoveStickyNote"
             @resize="handleResizeStickyNote"
             @update-body="handleUpdateStickyNoteBody"
