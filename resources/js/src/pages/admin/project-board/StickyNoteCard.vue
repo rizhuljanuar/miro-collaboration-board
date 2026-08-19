@@ -6,9 +6,7 @@ import type { BoardPosition, BoardSize, StickyNote } from '@/types/sticky-note';
 
 const props = defineProps<{
   stickyNote: StickyNote;
-  draggable: boolean;
-  resizable: boolean;
-  editable: boolean;
+  canEdit: boolean;
   selected: boolean;
 }>();
 
@@ -62,7 +60,7 @@ function selectStickyNote(): void {
 }
 
 function startDrag(event: PointerEvent): void {
-  if (!props.draggable || event.button !== 0 || resizeState.value !== null) {
+  if (!props.canEdit || event.button !== 0 || resizeState.value !== null) {
     return;
   }
 
@@ -127,7 +125,7 @@ function stopDrag(event: PointerEvent): void {
 }
 
 function startResize(event: PointerEvent): void {
-  if (!props.resizable || event.button !== 0 || dragState.value !== null) {
+  if (!props.canEdit || event.button !== 0 || dragState.value !== null) {
     return;
   }
 
@@ -189,9 +187,33 @@ function stopResize(event: PointerEvent): void {
   resizeState.value = null;
 }
 
-function handleLostPointerCapture(): void {
+function releasePointerCapture(element: HTMLElement | null, pointerId: number): void {
+  if (element?.hasPointerCapture(pointerId)) {
+    element.releasePointerCapture(pointerId);
+  }
+}
+
+function cleanupPointerInteractions(): void {
+  if (dragState.value) {
+    releasePointerCapture(dragHandle.value, dragState.value.pointerId);
+  }
+
+  if (resizeState.value) {
+    releasePointerCapture(resizeHandle.value, resizeState.value.pointerId);
+  }
+
   dragState.value = null;
   resizeState.value = null;
+}
+
+function handleLostPointerCapture(event: PointerEvent): void {
+  if (dragState.value?.pointerId === event.pointerId) {
+    dragState.value = null;
+  }
+
+  if (resizeState.value?.pointerId === event.pointerId) {
+    resizeState.value = null;
+  }
 }
 
 function handleBodyPointerDown(event: PointerEvent): void {
@@ -201,7 +223,7 @@ function handleBodyPointerDown(event: PointerEvent): void {
 }
 
 function updateStickyNoteBody(event: Event): void {
-  if (!props.editable) {
+  if (!props.canEdit) {
     return;
   }
 
@@ -218,7 +240,7 @@ function updateStickyNoteBody(event: Event): void {
 }
 
 function deleteStickyNote(): void {
-  if (!props.draggable) {
+  if (!props.canEdit) {
     return;
   }
 
@@ -226,8 +248,7 @@ function deleteStickyNote(): void {
 }
 
 onBeforeUnmount(() => {
-  dragState.value = null;
-  resizeState.value = null;
+  cleanupPointerInteractions();
 });
 </script>
 
@@ -247,7 +268,7 @@ onBeforeUnmount(() => {
       <header
         ref="dragHandle"
         class="flex shrink-0 touch-none select-none items-center justify-between gap-2 border-b border-slate-950/10 px-3 py-2"
-        :class="draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed opacity-60'"
+        :class="canEdit ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed opacity-60'"
         title="Drag sticky note"
         @pointerdown.stop="startDrag"
         @pointermove="dragStickyNote"
@@ -264,7 +285,7 @@ onBeforeUnmount(() => {
           class="grid size-6 place-items-center rounded-md text-sm font-bold text-slate-900/70 transition hover:bg-slate-950/10 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Delete sticky note"
           title="Delete sticky note"
-          :disabled="!draggable"
+          :disabled="!canEdit"
           @pointerdown.stop
           @click.stop="deleteStickyNote"
         >
@@ -275,11 +296,11 @@ onBeforeUnmount(() => {
       <div class="min-h-0 flex-1 px-3 py-3">
         <textarea
           :value="stickyNote.body"
-          :readonly="!editable"
+          :readonly="!canEdit"
           :aria-label="`Sticky note content: ${stickyNote.body || 'empty'}`"
-          :placeholder="editable ? 'Tulis ide Anda di sini...' : 'Tidak ada isi sticky note.'"
+          :placeholder="canEdit ? 'Tulis ide Anda di sini...' : 'Tidak ada isi sticky note.'"
           class="h-full min-h-0 w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-slate-950 outline-none placeholder:text-slate-900/45 focus:ring-0 disabled:cursor-not-allowed"
-          :class="editable ? 'cursor-text' : 'cursor-default'"
+          :class="canEdit ? 'cursor-text' : 'cursor-default'"
           @pointerdown="handleBodyPointerDown"
           @input="updateStickyNoteBody"
         ></textarea>
@@ -290,8 +311,8 @@ onBeforeUnmount(() => {
       ref="resizeHandle"
       type="button"
       class="absolute bottom-1 right-1 grid size-7 touch-none place-items-center rounded-md text-slate-950/55 transition hover:bg-slate-950/10 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-40"
-      :class="resizable ? 'cursor-nwse-resize' : 'cursor-not-allowed'"
-      :disabled="!resizable"
+      :class="canEdit ? 'cursor-nwse-resize' : 'cursor-not-allowed'"
+      :disabled="!canEdit"
       aria-label="Resize sticky note"
       title="Resize sticky note"
       @pointerdown.stop="startResize"
