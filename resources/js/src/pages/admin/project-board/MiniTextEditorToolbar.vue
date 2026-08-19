@@ -3,6 +3,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorInsertAction,
   TextEditorListType,
 } from '@/types/mini-text-editor';
 
@@ -14,6 +15,7 @@ interface ToolbarAction {
   heading?: TextEditorHeadingTag;
   alignment?: TextEditorAlignment;
   list?: TextEditorListType;
+  insert?: TextEditorInsertAction;
 }
 
 interface ToolbarGroup {
@@ -30,6 +32,7 @@ const emit = defineEmits<{
   heading: [tag: TextEditorHeadingTag];
   alignment: [alignment: TextEditorAlignment];
   list: [listType: TextEditorListType];
+  insert: [action: TextEditorInsertAction];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -120,6 +123,7 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'link',
         label: 'Insert link',
         icon: '↗',
+        insert: 'link',
       },
       {
         id: 'image',
@@ -161,6 +165,14 @@ function applyList(listType?: TextEditorListType): void {
 
   emit('list', listType);
 }
+
+function applyInsert(action?: TextEditorInsertAction): void {
+  if (!action) {
+    return;
+  }
+
+  emit('insert', action);
+}
 </script>
 
 <template>
@@ -177,15 +189,16 @@ function applyList(listType?: TextEditorListType): void {
           type="button"
           class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           :class="
-            action.format || action.heading || action.alignment || action.list
+            action.format || action.heading || action.alignment || action.list || action.insert
               ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
               : 'text-slate-400'
           "
           :disabled="
-            !canEdit || (!action.format && !action.heading && !action.alignment && !action.list)
+            !canEdit ||
+            (!action.format && !action.heading && !action.alignment && !action.list && !action.insert)
           "
           :title="
-            action.format || action.heading || action.alignment || action.list
+            action.format || action.heading || action.alignment || action.list || action.insert
               ? action.label
               : `${action.label} will be implemented in a later step`
           "
@@ -195,6 +208,7 @@ function applyList(listType?: TextEditorListType): void {
             applyHeading(action.heading);
             applyAlignment(action.alignment);
             applyList(action.list);
+            applyInsert(action.insert);
           "
         >
           <span

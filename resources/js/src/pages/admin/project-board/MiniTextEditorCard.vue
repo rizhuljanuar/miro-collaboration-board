@@ -8,6 +8,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorInsertAction,
   TextEditorListType,
 } from '@/types/mini-text-editor';
 
@@ -52,6 +53,7 @@ const editorContent = ref<HTMLDivElement | null>(null);
 
 const dragState = ref<DragState | null>(null);
 const resizeState = ref<ResizeState | null>(null);
+const editorErrorMessage = ref<string | null>(null);
 
 const editorStyle = computed(() => {
   return {
@@ -257,6 +259,69 @@ function applyList(listType: TextEditorListType): void {
   }
 }
 
+function normalizeSafeLinkUrl(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+
+    if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) {
+      return null;
+    }
+
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function insertLink(): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const selection = window.getSelection();
+
+  if (!selection || selection.isCollapsed) {
+    editorErrorMessage.value = 'Pilih teks terlebih dahulu sebelum membuat link.';
+
+    return;
+  }
+
+  const rawUrl = window.prompt(
+    'Masukkan URL link. Gunakan https://, http://, atau mailto:',
+    'https://',
+  );
+
+  if (rawUrl === null) {
+    return;
+  }
+
+  const safeUrl = normalizeSafeLinkUrl(rawUrl);
+
+  if (!safeUrl) {
+    editorErrorMessage.value =
+      'URL tidak valid. Gunakan URL dengan protocol https://, http://, atau mailto:.';
+
+    return;
+  }
+
+  const commandApplied = document.execCommand('createLink', false, safeUrl);
+
+  if (!commandApplied) {
+    editorErrorMessage.value = 'Link tidak dapat dibuat. Silakan coba lagi.';
+
+    return;
+  }
+
+  editorErrorMessage.value = null;
+  emitEditorContent();
+}
+
+function handleInsertAction(action: TextEditorInsertAction): void {
+  if (action === 'link') {
+    insertLink();
+  }
+}
+
 function cleanupPointerInteractions(): void {
   if (dragState.value && dragHandle.value?.hasPointerCapture(dragState.value.pointerId)) {
     dragHandle.value.releasePointerCapture(dragState.value.pointerId);
@@ -322,6 +387,7 @@ onBeforeUnmount(() => {
       @heading="applyHeading"
       @alignment="applyAlignment"
       @list="applyList"
+      @insert="handleInsertAction"
     />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div
@@ -335,6 +401,14 @@ onBeforeUnmount(() => {
         @pointerdown.stop
         @input="handleEditorInput"
       ></div>
+
+      <p
+        v-if="editorErrorMessage"
+        class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800"
+        role="alert"
+      >
+        {{ editorErrorMessage }}
+      </p>
 
       <p v-if="!canEdit" class="mt-3 text-xs leading-5 text-slate-500">
         Editor ini hanya dapat dilihat karena Anda tidak memiliki izin edit.
