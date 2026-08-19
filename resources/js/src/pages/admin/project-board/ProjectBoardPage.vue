@@ -4,10 +4,12 @@ import { RouterLink, useRoute } from 'vue-router';
 
 import { useProject } from '@/composables/useProject';
 import { useStickyNotes } from '@/composables/useStickyNotes';
+import { useMiniTextEditors } from '@/composables/useMiniTextEditors';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
 import type { BoardPosition, BoardSize } from '@/types/sticky-note';
+import { MINI_TEXT_EDITOR_DEFAULT_SIZE } from '@/types/mini-text-editor';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
@@ -16,6 +18,7 @@ import BoardToolbar from '@/pages/admin/project-board/BoardToolbar.vue';
 import BoardColorPalette from '@/pages/admin/project-board/BoardColorPalette.vue';
 import BoardWorkspace from '@/pages/admin/project-board/BoardWorkspace.vue';
 import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
+import MiniTextEditorCard from '@/pages/admin/project-board/MiniTextEditorCard.vue';
 
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
@@ -72,6 +75,15 @@ const {
   updateStickyNoteColor,
   deleteStickyNote,
 } = useStickyNotes();
+
+const {
+    miniTextEditors,
+    createMiniTextEditor,
+    moveMiniTextEditor,
+    resizeMiniTextEditor,
+    deleteMiniTextEditor,
+} = useMiniTextEditors();
+
 const canUndo = ref(false);
 const canRedo = ref(false);
 
@@ -171,6 +183,37 @@ function handleDeleteStickyNote(stickyNoteId: string): void {
   if (deleted && selectedStickyNoteId.value === stickyNoteId) {
     selectedStickyNoteId.value = null;
   }
+}
+
+function handleCreateTextEditor(position: BoardPosition): void {
+    if (!canEditBoard.value || selectedTool.value !== 'text') {
+        return;
+    }
+
+    createMiniTextEditor({
+        x: Math.max(0, position.x - MINI_TEXT_EDITOR_DEFAULT_SIZE.width / 2),
+        y: Math.max(0, position.y - 24),
+    });
+
+    selectedTool.value = 'cursor';
+}
+
+function handleMoveMiniTextEditor(payload: {
+    id: string;
+    position: BoardPosition;
+}): void {
+    moveMiniTextEditor(payload.id, payload.position);
+}
+
+function handleResizeMiniTextEditor(payload: {
+    id: string;
+    height: number;
+}): void {
+    resizeMiniTextEditor(payload.id, payload.height);
+}
+
+function handleDeleteMiniTextEditor(editorId: string): void {
+    deleteMiniTextEditor(editorId);
 }
 
 onBeforeUnmount(() => {
@@ -355,6 +398,7 @@ onBeforeUnmount(() => {
           :workspace-cursor-class="workspaceCursorClass"
           :can-edit="canEditBoard"
           @create-sticky-note="handleCreateStickyNote"
+              @create-text-editor='handleCreateTextEditor'
         >
           <template #overlay>
             <BoardColorPalette
@@ -376,6 +420,16 @@ onBeforeUnmount(() => {
             @update-body="handleUpdateStickyNoteBody"
             @delete="handleDeleteStickyNote"
           />
+
+          <MiniTextEditorCard
+    v-for='editor in miniTextEditors'
+    :key='editor.id'
+    :editor='editor'
+    :can-edit='canEditBoard'
+    @move='handleMoveMiniTextEditor'
+    @resize='handleResizeMiniTextEditor'
+    @delete='handleDeleteMiniTextEditor'
+/>
         </BoardWorkspace>
       </div>
     </section>
