@@ -158,6 +158,7 @@ function applyHeading(tag?: TextEditorHeadingTag): void {
               ? action.label
               : `${action.label} will be implemented in a later step`
           "
+          @pointerdown.prevent
           @click="
             applyFormat(action.format);
             applyHeading(action.heading);

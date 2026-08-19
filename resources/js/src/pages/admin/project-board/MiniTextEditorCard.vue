@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
 
-import type { MiniTextEditor, TextEditorHeadingTag } from '@/types/mini-text-editor';
+import type { MiniTextEditor } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
 import MiniTextEditorToolbar from '@/pages/admin/project-board/MiniTextEditorToolbar.vue';
-import type { InlineTextFormat } from '@/types/mini-text-editor';
+import type { InlineTextFormat, TextEditorHeadingTag } from '@/types/mini-text-editor';
 
 const props = defineProps<{
   editor: MiniTextEditor;
@@ -196,12 +196,22 @@ function applyInlineFormat(format: InlineTextFormat): void {
   }
 }
 
+function getActiveBlockTagName(): string | null {
+  const selection = window.getSelection();
+  const node = selection?.anchorNode;
+  const element = node instanceof HTMLElement ? node : node?.parentElement ?? null;
+
+  return element?.closest('h1, h2, h3, p')?.tagName.toLowerCase() ?? null;
+}
+
 function applyHeading(tag: TextEditorHeadingTag): void {
   if (!props.canEdit || !selectionBelongsToEditor()) {
     return;
   }
 
-  const commandApplied = document.execCommand('formatBlock', false, tag);
+  const targetTag = getActiveBlockTagName() === tag.toLowerCase() ? 'p' : tag.toLowerCase();
+
+  const commandApplied = document.execCommand('formatBlock', false, `<${targetTag}>`);
 
   if (commandApplied) {
     emitEditorContent();
@@ -279,7 +289,7 @@ onBeforeUnmount(() => {
         aria-multiline="true"
         aria-label="Mini rich text editor content"
         :contenteditable="canEdit"
-        class="min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;]"
+        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;]"
         :class="canEdit ? 'cursor-text' : 'cursor-default'"
         @pointerdown.stop
         @input="handleEditorInput"
@@ -307,3 +317,23 @@ onBeforeUnmount(() => {
     </button>
   </article>
 </template>
+
+<style scoped>
+.editor-rich-content :deep(h1) {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 2rem;
+}
+
+.editor-rich-content :deep(h2) {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.75rem;
+}
+
+.editor-rich-content :deep(h3) {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+}
+</style>
