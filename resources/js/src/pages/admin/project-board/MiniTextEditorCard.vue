@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import type { MiniTextEditor } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
 import MiniTextEditorToolbar from '@/pages/admin/project-board/MiniTextEditorToolbar.vue';
+import type { InlineTextFormat } from '@/types/mini-text-editor';
 
 const props = defineProps<{
   editor: MiniTextEditor;
@@ -13,6 +14,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   move: [payload: { id: string; position: BoardPosition }];
   resize: [payload: { id: string; height: number }];
+  'update-content': [payload: { id: string; contentHtml: string }];
   delete: [editorId: string];
 }>();
 
@@ -31,6 +33,7 @@ interface ResizeState {
 
 const dragHandle = ref<HTMLElement | null>(null);
 const resizeHandle = ref<HTMLElement | null>(null);
+const editorContent = ref<HTMLDivElement | null>(null);
 
 const dragState = ref<DragState | null>(null);
 const resizeState = ref<ResizeState | null>(null);
@@ -150,6 +153,49 @@ function stopResize(event: PointerEvent): void {
   resizeState.value = null;
 }
 
+function selectionBelongsToEditor(): boolean {
+  const selection = window.getSelection();
+
+  if (!selection || selection.rangeCount === 0 || !editorContent.value) {
+    return false;
+  }
+
+  const anchorNode = selection.anchorNode;
+
+  return anchorNode !== null && editorContent.value.contains(anchorNode);
+}
+
+function emitEditorContent(): void {
+  if (!editorContent.value) {
+    return;
+  }
+
+  emit('update-content', {
+    id: props.editor.id,
+    contentHtml: editorContent.value.innerHTML,
+  });
+}
+
+function handleEditorInput(): void {
+  if (!props.canEdit) {
+    return;
+  }
+
+  emitEditorContent();
+}
+
+function applyInlineFormat(format: InlineTextFormat): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const commandApplied = document.execCommand(format);
+
+  if (commandApplied) {
+    emitEditorContent();
+  }
+}
+
 function cleanupPointerInteractions(): void {
   if (dragState.value && dragHandle.value?.hasPointerCapture(dragState.value.pointerId)) {
     dragHandle.value.releasePointerCapture(dragState.value.pointerId);
@@ -209,18 +255,22 @@ onBeforeUnmount(() => {
       </button>
     </header>
 
-    <MiniTextEditorToolbar />
-
+    <MiniTextEditorToolbar :can-edit="canEdit" @format="applyInlineFormat" />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
-      <p class="text-sm font-semibold text-slate-700">Rich text editor is ready.</p>
+      <div
+        ref="editorContent"
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Mini rich text editor content"
+        :contenteditable="canEdit"
+        class="min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;]"
+        :class="canEdit ? 'cursor-text' : 'cursor-default'"
+        @pointerdown.stop
+        @input="handleEditorInput"
+      ></div>
 
-      <p class="mt-2 text-sm leading-6 text-slate-500">
-        Toolbar sudah tersedia. Pada langkah berikutnya, area ini akan menjadi editor
-        contenteditable dengan fungsi bold, italic, dan underline.
-      </p>
-
-      <p class="mt-4 rounded-lg bg-violet-50 px-3 py-2 text-xs leading-5 text-violet-800">
-        HTML belum dirender dengan v-html karena sanitasi konten belum diterapkan.
+      <p v-if="!canEdit" class="mt-3 text-xs leading-5 text-slate-500">
+        Editor ini hanya dapat dilihat karena Anda tidak memiliki izin edit.
       </p>
     </div>
 

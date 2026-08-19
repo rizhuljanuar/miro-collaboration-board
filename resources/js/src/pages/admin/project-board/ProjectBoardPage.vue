@@ -81,6 +81,7 @@ const {
   createMiniTextEditor,
   moveMiniTextEditor,
   resizeMiniTextEditor,
+  updateMiniTextEditorContent,
   deleteMiniTextEditor,
 } = useMiniTextEditors();
 
@@ -204,6 +205,14 @@ function handleMoveMiniTextEditor(payload: { id: string; position: BoardPosition
 
 function handleResizeMiniTextEditor(payload: { id: string; height: number }): void {
   resizeMiniTextEditor(payload.id, payload.height);
+}
+
+function handleUpdateMiniTextEditorContent(payload: { id: string; contentHtml: string }): void {
+  if (!canEditBoard.value) {
+    return;
+  }
+
+  updateMiniTextEditorContent(payload.id, payload.contentHtml);
 }
 
 function handleDeleteMiniTextEditor(editorId: string): void {
@@ -422,6 +431,7 @@ onBeforeUnmount(() => {
             :can-edit="canEditBoard"
             @move="handleMoveMiniTextEditor"
             @resize="handleResizeMiniTextEditor"
+            @update-content="handleUpdateMiniTextEditorContent"
             @delete="handleDeleteMiniTextEditor"
           />
         </BoardWorkspace>

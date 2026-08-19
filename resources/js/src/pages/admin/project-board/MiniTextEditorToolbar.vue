@@ -1,12 +1,25 @@
 <script setup lang="ts">
+import type { InlineTextFormat } from '@/types/mini-text-editor';
+
+interface ToolbarAction {
+  id: string;
+  label: string;
+  icon: string;
+  format?: InlineTextFormat;
+}
+
 interface ToolbarGroup {
   label: string;
-  actions: Array<{
-    id: string;
-    label: string;
-    icon: string;
-  }>;
+  actions: ToolbarAction[];
 }
+
+defineProps<{
+  canEdit: boolean;
+}>();
+
+const emit = defineEmits<{
+  format: [format: InlineTextFormat];
+}>();
 
 const toolbarGroups: ToolbarGroup[] = [
   {
@@ -16,16 +29,19 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'bold',
         label: 'Bold',
         icon: 'B',
+        format: 'bold',
       },
       {
         id: 'italic',
         label: 'Italic',
         icon: 'I',
+        format: 'italic',
       },
       {
         id: 'underline',
         label: 'Underline',
         icon: 'U',
+        format: 'underline',
       },
       {
         id: 'highlight',
@@ -95,6 +111,14 @@ const toolbarGroups: ToolbarGroup[] = [
     ],
   },
 ];
+
+function applyFormat(format?: InlineTextFormat): void {
+  if (!format) {
+    return;
+  }
+
+  emit('format', format);
+}
 </script>
 
 <template>
@@ -109,10 +133,19 @@ const toolbarGroups: ToolbarGroup[] = [
           v-for="action in group.actions"
           :key="action.id"
           type="button"
-          disabled
-          class="grid size-8 place-items-center rounded-md text-xs font-bold text-slate-400 transition disabled:cursor-not-allowed"
-          :aria-label="`${action.label} will be available in the next step`"
-          :title="`${action.label} will be implemented in the next step`"
+          class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
+          :class="
+            action.format
+              ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
+              : 'text-slate-400'
+          "
+          :disabled="!canEdit || !action.format"
+          :aria-label="action.label"
+          :title="
+            action.format ? action.label : `${action.label} will be implemented in a later step`
+          "
+          @pointerdown.prevent
+          @click="applyFormat(action.format)"
         >
           <span
             :class="{

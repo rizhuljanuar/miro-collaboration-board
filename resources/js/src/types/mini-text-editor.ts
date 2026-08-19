@@ -1,5 +1,9 @@
 import type { BoardPosition, BoardSize } from '@/types/sticky-note';
 
+export const INLINE_TEXT_FORMATS = ['bold', 'italic', 'underline'] as const;
+
+export type InlineTextFormat = (typeof INLINE_TEXT_FORMATS)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;

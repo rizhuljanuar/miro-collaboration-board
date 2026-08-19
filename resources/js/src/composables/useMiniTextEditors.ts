@@ -83,6 +83,29 @@ export function useMiniTextEditors() {
     return updatedEditor;
   }
 
+  function updateMiniTextEditorContent(
+    editorId: string,
+    contentHtml: string,
+  ): MiniTextEditor | null {
+    const currentEditor = miniTextEditors.value.find((editor) => editor.id === editorId);
+
+    if (!currentEditor) {
+      return null;
+    }
+
+    const updatedEditor: MiniTextEditor = {
+      ...currentEditor,
+      contentHtml,
+      updatedAt: new Date().toISOString(),
+    };
+
+    miniTextEditors.value = miniTextEditors.value.map((editor) => {
+      return editor.id === editorId ? updatedEditor : editor;
+    });
+
+    return updatedEditor;
+  }
+
   function deleteMiniTextEditor(editorId: string): boolean {
     const previousLength = miniTextEditors.value.length;
 
@@ -98,6 +121,7 @@ export function useMiniTextEditors() {
     createMiniTextEditor,
     moveMiniTextEditor,
     resizeMiniTextEditor,
+    updateMiniTextEditorContent,
     deleteMiniTextEditor,
   };
 }
