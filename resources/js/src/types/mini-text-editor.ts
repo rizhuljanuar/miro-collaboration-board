@@ -20,6 +20,10 @@ export const TEXT_EDITOR_INSERT_ACTIONS = ['link', 'image'] as const;
 
 export type TextEditorInsertAction = (typeof TEXT_EDITOR_INSERT_ACTIONS)[number];
 
+export const TEXT_EDITOR_HIGHLIGHT_COLORS = ['yellow'] as const;
+
+export type TextEditorHighlightColor = (typeof TEXT_EDITOR_HIGHLIGHT_COLORS)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;

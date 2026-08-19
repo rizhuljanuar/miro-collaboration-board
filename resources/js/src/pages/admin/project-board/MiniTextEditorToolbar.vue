@@ -3,6 +3,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorHighlightColor,
   TextEditorInsertAction,
   TextEditorListType,
 } from '@/types/mini-text-editor';
@@ -16,6 +17,7 @@ interface ToolbarAction {
   alignment?: TextEditorAlignment;
   list?: TextEditorListType;
   insert?: TextEditorInsertAction;
+  highlight?: TextEditorHighlightColor;
 }
 
 interface ToolbarGroup {
@@ -33,6 +35,7 @@ const emit = defineEmits<{
   alignment: [alignment: TextEditorAlignment];
   list: [listType: TextEditorListType];
   insert: [action: TextEditorInsertAction];
+  highlight: [color: TextEditorHighlightColor];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -61,6 +64,7 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'highlight',
         label: 'Highlight',
         icon: 'H',
+        highlight: 'yellow',
       },
     ],
   },
@@ -174,6 +178,14 @@ function applyInsert(action?: TextEditorInsertAction): void {
 
   emit('insert', action);
 }
+
+function applyHighlight(color?: TextEditorHighlightColor): void {
+  if (!color) {
+    return;
+  }
+
+  emit('highlight', color);
+}
 </script>
 
 <template>
@@ -190,7 +202,12 @@ function applyInsert(action?: TextEditorInsertAction): void {
           type="button"
           class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           :class="
-            action.format || action.heading || action.alignment || action.list || action.insert
+            action.format ||
+            action.heading ||
+            action.alignment ||
+            action.list ||
+            action.insert ||
+            action.highlight
               ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
               : 'text-slate-400'
           "
@@ -200,10 +217,16 @@ function applyInsert(action?: TextEditorInsertAction): void {
               !action.heading &&
               !action.alignment &&
               !action.list &&
-              !action.insert)
+              !action.insert &&
+              !action.highlight)
           "
           :title="
-            action.format || action.heading || action.alignment || action.list || action.insert
+            action.format ||
+            action.heading ||
+            action.alignment ||
+            action.list ||
+            action.insert ||
+            action.highlight
               ? action.label
               : `${action.label} will be implemented in a later step`
           "
@@ -214,12 +237,14 @@ function applyInsert(action?: TextEditorInsertAction): void {
             applyAlignment(action.alignment);
             applyList(action.list);
             applyInsert(action.insert);
+            applyHighlight(action.highlight);
           "
         >
           <span
             :class="{
               'italic font-serif': action.id === 'italic',
               underline: action.id === 'underline',
+              'rounded-sm bg-yellow-200 px-1 text-slate-900': action.id === 'highlight',
             }"
             aria-hidden="true"
           >

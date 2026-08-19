@@ -8,6 +8,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorHighlightColor,
   TextEditorInsertAction,
   TextEditorListType,
 } from '@/types/mini-text-editor';
@@ -45,6 +46,10 @@ const alignmentCommands: Record<TextEditorAlignment, string> = {
 
 const listCommands: Record<TextEditorListType, string> = {
   unordered: 'insertUnorderedList',
+};
+
+const highlightColors: Record<TextEditorHighlightColor, string> = {
+  yellow: '#fef08a',
 };
 
 const dragHandle = ref<HTMLElement | null>(null);
@@ -259,6 +264,27 @@ function applyList(listType: TextEditorListType): void {
   }
 }
 
+function applyHighlight(color: TextEditorHighlightColor): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const highlightColor = highlightColors[color];
+
+  const commandApplied =
+    document.execCommand('hiliteColor', false, highlightColor) ||
+    document.execCommand('backColor', false, highlightColor);
+
+  if (commandApplied) {
+    editorErrorMessage.value = null;
+    emitEditorContent();
+
+    return;
+  }
+
+  editorErrorMessage.value = 'Highlight tidak dapat diterapkan. Silakan coba lagi.';
+}
+
 function normalizeSafeLinkUrl(value: string): string | null {
   try {
     const url = new URL(value.trim());
@@ -443,6 +469,7 @@ onBeforeUnmount(() => {
       @alignment="applyAlignment"
       @list="applyList"
       @insert="handleInsertAction"
+      @highlight="applyHighlight"
     />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div
