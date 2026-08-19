@@ -12,6 +12,10 @@ export const TEXT_EDITOR_ALIGNMENTS = ['left', 'center', 'right'] as const;
 
 export type TextEditorAlignment = (typeof TEXT_EDITOR_ALIGNMENTS)[number];
 
+export const TEXT_EDITOR_LIST_TYPES = ['unordered'] as const;
+
+export type TextEditorListType = (typeof TEXT_EDITOR_LIST_TYPES)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;

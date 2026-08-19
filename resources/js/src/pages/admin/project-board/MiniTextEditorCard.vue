@@ -8,6 +8,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorListType,
 } from '@/types/mini-text-editor';
 
 const props = defineProps<{
@@ -39,6 +40,10 @@ const alignmentCommands: Record<TextEditorAlignment, string> = {
   left: 'justifyLeft',
   center: 'justifyCenter',
   right: 'justifyRight',
+};
+
+const listCommands: Record<TextEditorListType, string> = {
+  unordered: 'insertUnorderedList',
 };
 
 const dragHandle = ref<HTMLElement | null>(null);
@@ -240,6 +245,18 @@ function applyAlignment(alignment: TextEditorAlignment): void {
   }
 }
 
+function applyList(listType: TextEditorListType): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const commandApplied = document.execCommand(listCommands[listType]);
+
+  if (commandApplied) {
+    emitEditorContent();
+  }
+}
+
 function cleanupPointerInteractions(): void {
   if (dragState.value && dragHandle.value?.hasPointerCapture(dragState.value.pointerId)) {
     dragHandle.value.releasePointerCapture(dragState.value.pointerId);
@@ -304,6 +321,7 @@ onBeforeUnmount(() => {
       @format="applyInlineFormat"
       @heading="applyHeading"
       @alignment="applyAlignment"
+      @list="applyList"
     />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div
@@ -312,7 +330,7 @@ onBeforeUnmount(() => {
         aria-multiline="true"
         aria-label="Mini rich text editor content"
         :contenteditable="canEdit"
-        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;]"
+        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1"
         :class="canEdit ? 'cursor-text' : 'cursor-default'"
         @pointerdown.stop
         @input="handleEditorInput"

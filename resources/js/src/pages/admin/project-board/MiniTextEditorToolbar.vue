@@ -3,6 +3,7 @@ import type {
   InlineTextFormat,
   TextEditorAlignment,
   TextEditorHeadingTag,
+  TextEditorListType,
 } from '@/types/mini-text-editor';
 
 interface ToolbarAction {
@@ -12,6 +13,7 @@ interface ToolbarAction {
   format?: InlineTextFormat;
   heading?: TextEditorHeadingTag;
   alignment?: TextEditorAlignment;
+  list?: TextEditorListType;
 }
 
 interface ToolbarGroup {
@@ -27,6 +29,7 @@ const emit = defineEmits<{
   format: [format: InlineTextFormat];
   heading: [tag: TextEditorHeadingTag];
   alignment: [alignment: TextEditorAlignment];
+  list: [listType: TextEditorListType];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -111,6 +114,7 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'unordered-list',
         label: 'Bullet list',
         icon: '•',
+        list: 'unordered',
       },
       {
         id: 'link',
@@ -149,6 +153,14 @@ function applyAlignment(alignment?: TextEditorAlignment): void {
 
   emit('alignment', alignment);
 }
+
+function applyList(listType?: TextEditorListType): void {
+  if (!listType) {
+    return;
+  }
+
+  emit('list', listType);
+}
 </script>
 
 <template>
@@ -165,13 +177,15 @@ function applyAlignment(alignment?: TextEditorAlignment): void {
           type="button"
           class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           :class="
-            action.format || action.heading || action.alignment
+            action.format || action.heading || action.alignment || action.list
               ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
               : 'text-slate-400'
           "
-          :disabled="!canEdit || (!action.format && !action.heading && !action.alignment)"
+          :disabled="
+            !canEdit || (!action.format && !action.heading && !action.alignment && !action.list)
+          "
           :title="
-            action.format || action.heading || action.alignment
+            action.format || action.heading || action.alignment || action.list
               ? action.label
               : `${action.label} will be implemented in a later step`
           "
@@ -180,6 +194,7 @@ function applyAlignment(alignment?: TextEditorAlignment): void {
             applyFormat(action.format);
             applyHeading(action.heading);
             applyAlignment(action.alignment);
+            applyList(action.list);
           "
         >
           <span
