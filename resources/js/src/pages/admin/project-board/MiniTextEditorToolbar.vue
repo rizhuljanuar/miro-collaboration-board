@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { InlineTextFormat, TextEditorHeadingTag } from '@/types/mini-text-editor';
+import type {
+  InlineTextFormat,
+  TextEditorAlignment,
+  TextEditorHeadingTag,
+} from '@/types/mini-text-editor';
 
 interface ToolbarAction {
   id: string;
@@ -7,6 +11,7 @@ interface ToolbarAction {
   icon: string;
   format?: InlineTextFormat;
   heading?: TextEditorHeadingTag;
+  alignment?: TextEditorAlignment;
 }
 
 interface ToolbarGroup {
@@ -21,6 +26,7 @@ defineProps<{
 const emit = defineEmits<{
   format: [format: InlineTextFormat];
   heading: [tag: TextEditorHeadingTag];
+  alignment: [alignment: TextEditorAlignment];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -82,16 +88,19 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'align-left',
         label: 'Align left',
         icon: '≡',
+        alignment: 'left',
       },
       {
         id: 'align-center',
         label: 'Align center',
         icon: '≣',
+        alignment: 'center',
       },
       {
         id: 'align-right',
         label: 'Align right',
         icon: '☷',
+        alignment: 'right',
       },
     ],
   },
@@ -132,6 +141,14 @@ function applyHeading(tag?: TextEditorHeadingTag): void {
 
   emit('heading', tag);
 }
+
+function applyAlignment(alignment?: TextEditorAlignment): void {
+  if (!alignment) {
+    return;
+  }
+
+  emit('alignment', alignment);
+}
 </script>
 
 <template>
@@ -148,13 +165,13 @@ function applyHeading(tag?: TextEditorHeadingTag): void {
           type="button"
           class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           :class="
-            action.format || action.heading
+            action.format || action.heading || action.alignment
               ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
               : 'text-slate-400'
           "
-          :disabled="!canEdit || (!action.format && !action.heading)"
+          :disabled="!canEdit || (!action.format && !action.heading && !action.alignment)"
           :title="
-            action.format || action.heading
+            action.format || action.heading || action.alignment
               ? action.label
               : `${action.label} will be implemented in a later step`
           "
@@ -162,6 +179,7 @@ function applyHeading(tag?: TextEditorHeadingTag): void {
           @click="
             applyFormat(action.format);
             applyHeading(action.heading);
+            applyAlignment(action.alignment);
           "
         >
           <span

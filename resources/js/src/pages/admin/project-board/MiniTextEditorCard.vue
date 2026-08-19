@@ -4,7 +4,11 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import type { MiniTextEditor } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
 import MiniTextEditorToolbar from '@/pages/admin/project-board/MiniTextEditorToolbar.vue';
-import type { InlineTextFormat, TextEditorHeadingTag } from '@/types/mini-text-editor';
+import type {
+  InlineTextFormat,
+  TextEditorAlignment,
+  TextEditorHeadingTag,
+} from '@/types/mini-text-editor';
 
 const props = defineProps<{
   editor: MiniTextEditor;
@@ -30,6 +34,12 @@ interface ResizeState {
   startClientY: number;
   startHeight: number;
 }
+
+const alignmentCommands: Record<TextEditorAlignment, string> = {
+  left: 'justifyLeft',
+  center: 'justifyCenter',
+  right: 'justifyRight',
+};
 
 const dragHandle = ref<HTMLElement | null>(null);
 const resizeHandle = ref<HTMLElement | null>(null);
@@ -199,7 +209,7 @@ function applyInlineFormat(format: InlineTextFormat): void {
 function getActiveBlockTagName(): string | null {
   const selection = window.getSelection();
   const node = selection?.anchorNode;
-  const element = node instanceof HTMLElement ? node : node?.parentElement ?? null;
+  const element = node instanceof HTMLElement ? node : (node?.parentElement ?? null);
 
   return element?.closest('h1, h2, h3, p')?.tagName.toLowerCase() ?? null;
 }
@@ -212,6 +222,18 @@ function applyHeading(tag: TextEditorHeadingTag): void {
   const targetTag = getActiveBlockTagName() === tag.toLowerCase() ? 'p' : tag.toLowerCase();
 
   const commandApplied = document.execCommand('formatBlock', false, `<${targetTag}>`);
+
+  if (commandApplied) {
+    emitEditorContent();
+  }
+}
+
+function applyAlignment(alignment: TextEditorAlignment): void {
+  if (!props.canEdit || !selectionBelongsToEditor()) {
+    return;
+  }
+
+  const commandApplied = document.execCommand(alignmentCommands[alignment]);
 
   if (commandApplied) {
     emitEditorContent();
@@ -281,6 +303,7 @@ onBeforeUnmount(() => {
       :can-edit="canEdit"
       @format="applyInlineFormat"
       @heading="applyHeading"
+      @alignment="applyAlignment"
     />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div

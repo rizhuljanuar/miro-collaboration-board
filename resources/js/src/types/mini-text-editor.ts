@@ -8,6 +8,10 @@ export const TEXT_EDITOR_HEADING_TAGS = ['H1', 'H2', 'H3'] as const;
 
 export type TextEditorHeadingTag = (typeof TEXT_EDITOR_HEADING_TAGS)[number];
 
+export const TEXT_EDITOR_ALIGNMENTS = ['left', 'center', 'right'] as const;
+
+export type TextEditorAlignment = (typeof TEXT_EDITOR_ALIGNMENTS)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;
