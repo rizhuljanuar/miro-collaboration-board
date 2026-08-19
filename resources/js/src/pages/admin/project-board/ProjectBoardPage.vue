@@ -20,7 +20,14 @@ import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
-const { stickyNotes, createStickyNote, moveStickyNote, resizeStickyNote, deleteStickyNote } = useStickyNotes();
+const {
+  stickyNotes,
+  createStickyNote,
+  moveStickyNote,
+  resizeStickyNote,
+  updateStickyNoteBody,
+  deleteStickyNote,
+} = useStickyNotes();
 const canUndo = ref(false);
 const canRedo = ref(false);
 
@@ -93,11 +100,16 @@ function handleCreateStickyNote(position: BoardPosition): void {
   selectedTool.value = 'cursor';
 }
 
-function handleResizeStickyNote(payload: {
-    id: string;
-    size: BoardSize;
-}): void {
-    resizeStickyNote(payload.id, payload.size);
+function handleResizeStickyNote(payload: { id: string; size: BoardSize }): void {
+  resizeStickyNote(payload.id, payload.size);
+}
+
+function handleUpdateStickyNoteBody(payload: { id: string; body: string }): void {
+  if (!canEditBoard.value) {
+    return;
+  }
+
+  updateStickyNoteBody(payload.id, payload.body);
 }
 
 function handleMoveStickyNote(payload: { id: string; position: BoardPosition }): void {
@@ -304,9 +316,11 @@ onBeforeUnmount(() => {
             :key="stickyNote.id"
             :sticky-note="stickyNote"
             :draggable="canEditBoard"
-            :resizable='canEditBoard'
+            :resizable="canEditBoard"
+            :editable="canEditBoard"
             @move="handleMoveStickyNote"
-            @resize='handleResizeStickyNote'
+            @resize="handleResizeStickyNote"
+            @update-body="handleUpdateStickyNoteBody"
             @delete="handleDeleteStickyNote"
           />
         </BoardWorkspace>
