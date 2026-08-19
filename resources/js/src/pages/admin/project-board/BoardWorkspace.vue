@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'create-sticky-note': [position: BoardPosition];
-      'create-text-editor': [position: BoardPosition];
+  'create-text-editor': [position: BoardPosition];
 }>();
 
 const boardSurface = ref<HTMLDivElement | null>(null);
@@ -23,31 +23,26 @@ const boardSurface = ref<HTMLDivElement | null>(null);
 function handleWorkspacePointerDown(event: PointerEvent): void {
   const surface = boardSurface.value;
 
-  if (
-    !props.canEdit ||
-    event.button !== 0 ||
-    !surface ||
-    event.target !== surface
-  ) {
+  if (!props.canEdit || event.button !== 0 || !surface || event.target !== surface) {
     return;
   }
 
   const bounds = surface.getBoundingClientRect();
 
-    const position = {
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
-    };
+  const position = {
+    x: event.clientX - bounds.left,
+    y: event.clientY - bounds.top,
+  };
 
-    if (props.selectedTool === 'sticky-note') {
-        emit('create-sticky-note', position);
+  if (props.selectedTool === 'sticky-note') {
+    emit('create-sticky-note', position);
 
-        return;
-    }
+    return;
+  }
 
-    if (props.selectedTool === 'text') {
-        emit('create-text-editor', position);
-    }
+  if (props.selectedTool === 'text') {
+    emit('create-text-editor', position);
+  }
 }
 </script>
 

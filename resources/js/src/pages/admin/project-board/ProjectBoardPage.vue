@@ -77,11 +77,11 @@ const {
 } = useStickyNotes();
 
 const {
-    miniTextEditors,
-    createMiniTextEditor,
-    moveMiniTextEditor,
-    resizeMiniTextEditor,
-    deleteMiniTextEditor,
+  miniTextEditors,
+  createMiniTextEditor,
+  moveMiniTextEditor,
+  resizeMiniTextEditor,
+  deleteMiniTextEditor,
 } = useMiniTextEditors();
 
 const canUndo = ref(false);
@@ -186,34 +186,28 @@ function handleDeleteStickyNote(stickyNoteId: string): void {
 }
 
 function handleCreateTextEditor(position: BoardPosition): void {
-    if (!canEditBoard.value || selectedTool.value !== 'text') {
-        return;
-    }
+  if (!canEditBoard.value || selectedTool.value !== 'text') {
+    return;
+  }
 
-    createMiniTextEditor({
-        x: Math.max(0, position.x - MINI_TEXT_EDITOR_DEFAULT_SIZE.width / 2),
-        y: Math.max(0, position.y - 24),
-    });
+  createMiniTextEditor({
+    x: Math.max(0, position.x - MINI_TEXT_EDITOR_DEFAULT_SIZE.width / 2),
+    y: Math.max(0, position.y - 24),
+  });
 
-    selectedTool.value = 'cursor';
+  selectedTool.value = 'cursor';
 }
 
-function handleMoveMiniTextEditor(payload: {
-    id: string;
-    position: BoardPosition;
-}): void {
-    moveMiniTextEditor(payload.id, payload.position);
+function handleMoveMiniTextEditor(payload: { id: string; position: BoardPosition }): void {
+  moveMiniTextEditor(payload.id, payload.position);
 }
 
-function handleResizeMiniTextEditor(payload: {
-    id: string;
-    height: number;
-}): void {
-    resizeMiniTextEditor(payload.id, payload.height);
+function handleResizeMiniTextEditor(payload: { id: string; height: number }): void {
+  resizeMiniTextEditor(payload.id, payload.height);
 }
 
 function handleDeleteMiniTextEditor(editorId: string): void {
-    deleteMiniTextEditor(editorId);
+  deleteMiniTextEditor(editorId);
 }
 
 onBeforeUnmount(() => {
@@ -398,7 +392,7 @@ onBeforeUnmount(() => {
           :workspace-cursor-class="workspaceCursorClass"
           :can-edit="canEditBoard"
           @create-sticky-note="handleCreateStickyNote"
-              @create-text-editor='handleCreateTextEditor'
+          @create-text-editor="handleCreateTextEditor"
         >
           <template #overlay>
             <BoardColorPalette
@@ -422,14 +416,14 @@ onBeforeUnmount(() => {
           />
 
           <MiniTextEditorCard
-    v-for='editor in miniTextEditors'
-    :key='editor.id'
-    :editor='editor'
-    :can-edit='canEditBoard'
-    @move='handleMoveMiniTextEditor'
-    @resize='handleResizeMiniTextEditor'
-    @delete='handleDeleteMiniTextEditor'
-/>
+            v-for="editor in miniTextEditors"
+            :key="editor.id"
+            :editor="editor"
+            :can-edit="canEditBoard"
+            @move="handleMoveMiniTextEditor"
+            @resize="handleResizeMiniTextEditor"
+            @delete="handleDeleteMiniTextEditor"
+          />
         </BoardWorkspace>
       </div>
     </section>
