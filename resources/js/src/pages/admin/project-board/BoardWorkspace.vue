@@ -1,19 +1,52 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 import type { BoardTool } from '@/types/board';
+import type { BoardPosition } from '@/types/sticky-note';
 import type { Project } from '@/types/project';
 
-defineProps<{
+const props = defineProps<{
   project: Project;
   selectedTool: BoardTool;
   toolMessage: string;
   workspaceCursorClass: string;
+  canEdit: boolean;
 }>();
+
+const emit = defineEmits<{
+  'create-sticky-note': [position: BoardPosition];
+}>();
+
+const boardSurface = ref<HTMLDivElement | null>(null);
+
+function handleWorkspacePointerDown(event: PointerEvent): void {
+  const surface = boardSurface.value;
+
+  if (
+    !props.canEdit ||
+    props.selectedTool !== 'sticky-note' ||
+    event.button !== 0 ||
+    !surface ||
+    event.target !== surface
+  ) {
+    return;
+  }
+
+  const bounds = surface.getBoundingClientRect();
+
+  emit('create-sticky-note', {
+    x: event.clientX - bounds.left,
+    y: event.clientY - bounds.top,
+  });
+}
 </script>
 
 <template>
   <div class="relative min-h-0 flex-1 overflow-auto bg-slate-100 p-2 sm:p-4 md:p-6">
     <div
+      ref="boardSurface"
       class="relative min-h-[560px] min-w-[640px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:min-h-[620px] sm:min-w-[720px] sm:rounded-2xl lg:min-w-[960px]"
+      @pointerdown="handleWorkspacePointerDown"
       :class="workspaceCursorClass"
       :data-board-tool="selectedTool"
       style="
@@ -24,7 +57,7 @@ defineProps<{
       <slot name="overlay" />
 
       <div
-        class="absolute left-3 top-3 z-10 max-w-[calc(100%-1.5rem)] rounded-xl border border-blue-100 bg-white/95 p-4 shadow-lg shadow-blue-950/5 backdrop-blur sm:left-6 sm:top-6 sm:max-w-sm sm:rounded-2xl sm:p-5"
+        class="pointer-events-none absolute left-3 top-3 z-10 max-w-[calc(100%-1.5rem)] rounded-xl border border-blue-100 bg-white/95 p-4 shadow-lg shadow-blue-950/5 backdrop-blur sm:left-6 sm:top-6 sm:max-w-sm sm:rounded-2xl sm:p-5"
       >
         <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
           {{ project.role ?? 'member' }} workspace
@@ -43,7 +76,7 @@ defineProps<{
       </div>
 
       <div
-        class="absolute inset-0 grid place-items-center px-6 pb-6 pt-48 text-center sm:px-10 sm:pt-40"
+        class="pointer-events-none absolute inset-0 grid place-items-center px-6 pb-6 pt-48 text-center sm:px-10 sm:pt-40"
         aria-label="Board workspace"
       >
         <div class="max-w-md">

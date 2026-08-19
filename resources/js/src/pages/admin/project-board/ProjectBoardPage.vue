@@ -3,7 +3,11 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { useProject } from '@/composables/useProject';
+import { useStickyNotes } from '@/composables/useStickyNotes';
+
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
+import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
+import type { BoardPosition } from '@/types/sticky-note';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
@@ -11,10 +15,12 @@ import ShareBoardButton from '@/components/ShareBoardButton.vue';
 import BoardToolbar from '@/pages/admin/project-board/BoardToolbar.vue';
 import BoardColorPalette from '@/pages/admin/project-board/BoardColorPalette.vue';
 import BoardWorkspace from '@/pages/admin/project-board/BoardWorkspace.vue';
+import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
+const { stickyNotes, createStickyNote, moveStickyNote, deleteStickyNote } = useStickyNotes();
 const canUndo = ref(false);
 const canRedo = ref(false);
 
@@ -70,6 +76,30 @@ const workspaceToolMessage = computed(() => {
 
 const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
   useProject(projectId);
+
+function handleCreateStickyNote(position: BoardPosition): void {
+  if (!canEditBoard.value || selectedTool.value !== 'sticky-note') {
+    return;
+  }
+
+  createStickyNote({
+    color: selectedStickyNoteColor.value,
+    position: {
+      x: Math.max(0, position.x - STICKY_NOTE_DEFAULT_SIZE.width / 2),
+      y: Math.max(0, position.y - 24),
+    },
+  });
+
+  selectedTool.value = 'cursor';
+}
+
+function handleMoveStickyNote(payload: { id: string; position: BoardPosition }): void {
+  moveStickyNote(payload.id, payload.position);
+}
+
+function handleDeleteStickyNote(stickyNoteId: string): void {
+  deleteStickyNote(stickyNoteId);
+}
 
 onBeforeUnmount(() => {
   dispose();
@@ -251,6 +281,8 @@ onBeforeUnmount(() => {
           :selected-tool="selectedTool"
           :tool-message="workspaceToolMessage"
           :workspace-cursor-class="workspaceCursorClass"
+          :can-edit="canEditBoard"
+          @create-sticky-note="handleCreateStickyNote"
         >
           <template #overlay>
             <BoardColorPalette
@@ -259,6 +291,15 @@ onBeforeUnmount(() => {
               class="absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-6"
             />
           </template>
+
+          <StickyNoteCard
+            v-for="stickyNote in stickyNotes"
+            :key="stickyNote.id"
+            :sticky-note="stickyNote"
+            :draggable="canEditBoard"
+            @move="handleMoveStickyNote"
+            @delete="handleDeleteStickyNote"
+          />
         </BoardWorkspace>
       </div>
     </section>
