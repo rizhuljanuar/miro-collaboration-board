@@ -4,6 +4,8 @@ import type { MiniTextEditor } from '@/types/mini-text-editor';
 import { MINI_TEXT_EDITOR_DEFAULT_SIZE, MINI_TEXT_EDITOR_MIN_SIZE } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
 
+import { sanitizeRichTextHtml } from '@/helpers/sanitize-rich-text';
+
 function createMiniTextEditorId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -95,7 +97,7 @@ export function useMiniTextEditors() {
 
     const updatedEditor: MiniTextEditor = {
       ...currentEditor,
-      contentHtml,
+      contentHtml: sanitizeRichTextHtml(contentHtml),
       updatedAt: new Date().toISOString(),
     };
 

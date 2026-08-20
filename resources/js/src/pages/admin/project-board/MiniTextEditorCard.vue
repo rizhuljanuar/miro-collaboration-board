@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import type { MiniTextEditor } from '@/types/mini-text-editor';
 import type { BoardPosition } from '@/types/sticky-note';
@@ -13,6 +13,8 @@ import type {
   TextEditorListType,
   TextEditorToolbarAction,
 } from '@/types/mini-text-editor';
+
+import { sanitizeRichTextHtml } from '@/helpers/sanitize-rich-text';
 
 const props = defineProps<{
   editor: MiniTextEditor;
@@ -188,6 +190,20 @@ function selectionBelongsToEditor(): boolean {
   return anchorNode !== null && editorContent.value.contains(anchorNode);
 }
 
+function hydrateEditorContent(): void {
+  if (!editorContent.value) {
+    return;
+  }
+
+  const sanitizedHtml = sanitizeRichTextHtml(props.editor.contentHtml);
+
+  if (editorContent.value.innerHTML === sanitizedHtml) {
+    return;
+  }
+
+  editorContent.value.innerHTML = sanitizedHtml;
+}
+
 function emitEditorContent(): void {
   if (!editorContent.value) {
     return;
@@ -205,6 +221,27 @@ function handleEditorInput(): void {
   }
 
   emitEditorContent();
+}
+
+function handleEditorPaste(event: ClipboardEvent): void {
+  if (!props.canEdit) {
+    return;
+  }
+
+  const plainText = event.clipboardData?.getData('text/plain');
+
+  if (!plainText) {
+    return;
+  }
+
+  event.preventDefault();
+
+  document.execCommand('insertText', false, plainText);
+  emitEditorContent();
+}
+
+function blockEditorDrop(event: DragEvent): void {
+  event.preventDefault();
 }
 
 function applyInlineFormat(format: InlineTextFormat): void {
@@ -496,6 +533,21 @@ function cleanupPointerInteractions(): void {
   resizeState.value = null;
 }
 
+onMounted(() => {
+  hydrateEditorContent();
+});
+
+watch(
+  () => props.editor.contentHtml,
+  () => {
+    if (document.activeElement === editorContent.value) {
+      return;
+    }
+
+    hydrateEditorContent();
+  },
+);
+
 onBeforeUnmount(() => {
   cleanupPointerInteractions();
 });
@@ -550,10 +602,13 @@ onBeforeUnmount(() => {
         aria-multiline="true"
         aria-label="Mini rich text editor content"
         :contenteditable="canEdit"
-        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1 [&_img]:my-3 [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-slate-200"
+        class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1 [&_img]:my-3 [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-slate-200 [&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-0.5"
         :class="canEdit ? 'cursor-text' : 'cursor-default'"
         @pointerdown.stop
         @input="handleEditorInput"
+        @paste="handleEditorPaste"
+        @dragover.prevent
+        @drop="blockEditorDrop"
       ></div>
 
       <p
