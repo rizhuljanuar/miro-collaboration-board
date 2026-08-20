@@ -19,6 +19,7 @@ import BoardColorPalette from '@/pages/admin/project-board/BoardColorPalette.vue
 import BoardWorkspace from '@/pages/admin/project-board/BoardWorkspace.vue';
 import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 import MiniTextEditorCard from '@/pages/admin/project-board/MiniTextEditorCard.vue';
+import BoardCanvas from '@/pages/admin/project-board/BoardCanvas.vue';
 
 const route = useRoute();
 const selectedTool = ref<BoardTool>('cursor');
@@ -410,6 +411,8 @@ onBeforeUnmount(() => {
               class="absolute bottom-3 left-3 z-10 sm:bottom-6 sm:left-6"
             />
           </template>
+
+          <BoardCanvas />
 
           <StickyNoteCard
             v-for="stickyNote in stickyNotes"
