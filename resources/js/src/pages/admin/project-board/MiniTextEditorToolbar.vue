@@ -1,23 +1,10 @@
 <script setup lang="ts">
-import type {
-  InlineTextFormat,
-  TextEditorAlignment,
-  TextEditorHeadingTag,
-  TextEditorHighlightColor,
-  TextEditorInsertAction,
-  TextEditorListType,
-} from '@/types/mini-text-editor';
+import type { TextEditorToolbarAction } from '@/types/mini-text-editor';
 
 interface ToolbarAction {
-  id: string;
+  id: TextEditorToolbarAction;
   label: string;
   icon: string;
-  format?: InlineTextFormat;
-  heading?: TextEditorHeadingTag;
-  alignment?: TextEditorAlignment;
-  list?: TextEditorListType;
-  insert?: TextEditorInsertAction;
-  highlight?: TextEditorHighlightColor;
 }
 
 interface ToolbarGroup {
@@ -30,12 +17,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  format: [format: InlineTextFormat];
-  heading: [tag: TextEditorHeadingTag];
-  alignment: [alignment: TextEditorAlignment];
-  list: [listType: TextEditorListType];
-  insert: [action: TextEditorInsertAction];
-  highlight: [color: TextEditorHighlightColor];
+  action: [action: TextEditorToolbarAction];
 }>();
 
 const toolbarGroups: ToolbarGroup[] = [
@@ -46,25 +28,21 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'bold',
         label: 'Bold',
         icon: 'B',
-        format: 'bold',
       },
       {
         id: 'italic',
         label: 'Italic',
         icon: 'I',
-        format: 'italic',
       },
       {
         id: 'underline',
         label: 'Underline',
         icon: 'U',
-        format: 'underline',
       },
       {
         id: 'highlight',
         label: 'Highlight',
         icon: 'H',
-        highlight: 'yellow',
       },
     ],
   },
@@ -75,19 +53,16 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'heading-1',
         label: 'Heading 1',
         icon: 'H1',
-        heading: 'H1',
       },
       {
         id: 'heading-2',
         label: 'Heading 2',
         icon: 'H2',
-        heading: 'H2',
       },
       {
         id: 'heading-3',
         label: 'Heading 3',
         icon: 'H3',
-        heading: 'H3',
       },
     ],
   },
@@ -98,19 +73,16 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'align-left',
         label: 'Align left',
         icon: '≡',
-        alignment: 'left',
       },
       {
         id: 'align-center',
         label: 'Align center',
         icon: '≣',
-        alignment: 'center',
       },
       {
         id: 'align-right',
         label: 'Align right',
         icon: '☷',
-        alignment: 'right',
       },
     ],
   },
@@ -121,70 +93,56 @@ const toolbarGroups: ToolbarGroup[] = [
         id: 'unordered-list',
         label: 'Bullet list',
         icon: '•',
-        list: 'unordered',
       },
       {
         id: 'link',
         label: 'Insert link',
         icon: '↗',
-        insert: 'link',
       },
       {
         id: 'image',
         label: 'Insert image',
         icon: '▧',
-        insert: 'image',
       },
     ],
   },
 ];
 
-function applyFormat(format?: InlineTextFormat): void {
-  if (!format) {
+function getActionButton(target: EventTarget | null): HTMLButtonElement | null {
+  if (!(target instanceof Element)) {
+    return null;
+  }
+
+  const button = target.closest<HTMLButtonElement>('button[data-editor-action]');
+
+  return button;
+}
+
+function handleToolbarPointerDown(event: PointerEvent): void {
+  const button = getActionButton(event.target);
+
+  if (!button || button.disabled) {
     return;
   }
 
-  emit('format', format);
+  // Menjaga selection text agar tidak hilang saat toolbar diklik.
+  event.preventDefault();
 }
 
-function applyHeading(tag?: TextEditorHeadingTag): void {
-  if (!tag) {
+function handleToolbarClick(event: MouseEvent): void {
+  const button = getActionButton(event.target);
+
+  if (!button || button.disabled) {
     return;
   }
 
-  emit('heading', tag);
-}
+  const action = button.dataset.editorAction as TextEditorToolbarAction | undefined;
 
-function applyAlignment(alignment?: TextEditorAlignment): void {
-  if (!alignment) {
-    return;
-  }
-
-  emit('alignment', alignment);
-}
-
-function applyList(listType?: TextEditorListType): void {
-  if (!listType) {
-    return;
-  }
-
-  emit('list', listType);
-}
-
-function applyInsert(action?: TextEditorInsertAction): void {
   if (!action) {
     return;
   }
 
-  emit('insert', action);
-}
-
-function applyHighlight(color?: TextEditorHighlightColor): void {
-  if (!color) {
-    return;
-  }
-
-  emit('highlight', color);
+  emit('action', action);
 }
 </script>
 
@@ -193,6 +151,8 @@ function applyHighlight(color?: TextEditorHighlightColor): void {
     class="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-slate-200 bg-slate-50 px-2 py-2"
     role="toolbar"
     aria-label="Rich text editor toolbar"
+    @pointerdown="handleToolbarPointerDown"
+    @click="handleToolbarClick"
   >
     <template v-for="(group, groupIndex) in toolbarGroups" :key="group.label">
       <div class="flex shrink-0 items-center gap-1" :aria-label="group.label">
@@ -200,45 +160,11 @@ function applyHighlight(color?: TextEditorHighlightColor): void {
           v-for="action in group.actions"
           :key="action.id"
           type="button"
-          class="grid size-8 place-items-center rounded-md text-xs font-bold transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
-          :class="
-            action.format ||
-            action.heading ||
-            action.alignment ||
-            action.list ||
-            action.insert ||
-            action.highlight
-              ? 'text-slate-700 hover:bg-violet-100 hover:text-violet-800 focus:ring-violet-200'
-              : 'text-slate-400'
-          "
-          :disabled="
-            !canEdit ||
-            (!action.format &&
-              !action.heading &&
-              !action.alignment &&
-              !action.list &&
-              !action.insert &&
-              !action.highlight)
-          "
-          :title="
-            action.format ||
-            action.heading ||
-            action.alignment ||
-            action.list ||
-            action.insert ||
-            action.highlight
-              ? action.label
-              : `${action.label} will be implemented in a later step`
-          "
-          @pointerdown.prevent
-          @click="
-            applyFormat(action.format);
-            applyHeading(action.heading);
-            applyAlignment(action.alignment);
-            applyList(action.list);
-            applyInsert(action.insert);
-            applyHighlight(action.highlight);
-          "
+          :data-editor-action="action.id"
+          :disabled="!canEdit"
+          class="grid size-8 place-items-center rounded-md text-xs font-bold text-slate-700 transition hover:bg-violet-100 hover:text-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-200 disabled:cursor-not-allowed disabled:opacity-40"
+          :aria-label="action.label"
+          :title="action.label"
         >
           <span
             :class="{

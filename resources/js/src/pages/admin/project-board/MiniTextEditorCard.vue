@@ -11,6 +11,7 @@ import type {
   TextEditorHighlightColor,
   TextEditorInsertAction,
   TextEditorListType,
+  TextEditorToolbarAction,
 } from '@/types/mini-text-editor';
 
 const props = defineProps<{
@@ -403,6 +404,85 @@ function handleInsertAction(action: TextEditorInsertAction): void {
   }
 }
 
+function handleToolbarAction(action: TextEditorToolbarAction): void {
+  const inlineFormats: Partial<Record<TextEditorToolbarAction, InlineTextFormat>> = {
+    bold: 'bold',
+    italic: 'italic',
+    underline: 'underline',
+  };
+
+  const headings: Partial<Record<TextEditorToolbarAction, TextEditorHeadingTag>> = {
+    'heading-1': 'H1',
+    'heading-2': 'H2',
+    'heading-3': 'H3',
+  };
+
+  const alignments: Partial<Record<TextEditorToolbarAction, TextEditorAlignment>> = {
+    'align-left': 'left',
+    'align-center': 'center',
+    'align-right': 'right',
+  };
+
+  const listTypes: Partial<Record<TextEditorToolbarAction, TextEditorListType>> = {
+    'unordered-list': 'unordered',
+  };
+
+  const insertActions: Partial<Record<TextEditorToolbarAction, TextEditorInsertAction>> = {
+    link: 'link',
+    image: 'image',
+  };
+
+  const highlights: Partial<Record<TextEditorToolbarAction, TextEditorHighlightColor>> = {
+    highlight: 'yellow',
+  };
+
+  const inlineFormat = inlineFormats[action];
+
+  if (inlineFormat) {
+    applyInlineFormat(inlineFormat);
+
+    return;
+  }
+
+  const heading = headings[action];
+
+  if (heading) {
+    applyHeading(heading);
+
+    return;
+  }
+
+  const alignment = alignments[action];
+
+  if (alignment) {
+    applyAlignment(alignment);
+
+    return;
+  }
+
+  const listType = listTypes[action];
+
+  if (listType) {
+    applyList(listType);
+
+    return;
+  }
+
+  const insertAction = insertActions[action];
+
+  if (insertAction) {
+    handleInsertAction(insertAction);
+
+    return;
+  }
+
+  const highlight = highlights[action];
+
+  if (highlight) {
+    applyHighlight(highlight);
+  }
+}
+
 function cleanupPointerInteractions(): void {
   if (dragState.value && dragHandle.value?.hasPointerCapture(dragState.value.pointerId)) {
     dragHandle.value.releasePointerCapture(dragState.value.pointerId);
@@ -462,15 +542,7 @@ onBeforeUnmount(() => {
       </button>
     </header>
 
-    <MiniTextEditorToolbar
-      :can-edit="canEdit"
-      @format="applyInlineFormat"
-      @heading="applyHeading"
-      @alignment="applyAlignment"
-      @list="applyList"
-      @insert="handleInsertAction"
-      @highlight="applyHighlight"
-    />
+    <MiniTextEditorToolbar :can-edit="canEdit" @action="handleToolbarAction" />
     <div class="min-h-0 flex-1 overflow-auto px-4 py-3">
       <div
         ref="editorContent"

@@ -24,6 +24,24 @@ export const TEXT_EDITOR_HIGHLIGHT_COLORS = ['yellow'] as const;
 
 export type TextEditorHighlightColor = (typeof TEXT_EDITOR_HIGHLIGHT_COLORS)[number];
 
+export const TEXT_EDITOR_TOOLBAR_ACTIONS = [
+  'bold',
+  'italic',
+  'underline',
+  'highlight',
+  'heading-1',
+  'heading-2',
+  'heading-3',
+  'align-left',
+  'align-center',
+  'align-right',
+  'unordered-list',
+  'link',
+  'image',
+] as const;
+
+export type TextEditorToolbarAction = (typeof TEXT_EDITOR_TOOLBAR_ACTIONS)[number];
+
 export interface MiniTextEditor {
   id: string;
   contentHtml: string;
