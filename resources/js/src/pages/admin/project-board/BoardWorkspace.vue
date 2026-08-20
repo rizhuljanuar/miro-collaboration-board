@@ -51,13 +51,9 @@ function handleWorkspacePointerDown(event: PointerEvent): void {
     <div
       ref="boardSurface"
       class="relative min-h-[560px] min-w-[640px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:min-h-[620px] sm:min-w-[720px] sm:rounded-2xl lg:min-w-[960px]"
-      @pointerdown="handleWorkspacePointerDown"
       :class="workspaceCursorClass"
       :data-board-tool="selectedTool"
-      style="
-        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-        background-size: 24px 24px;
-      "
+      @pointerdown="handleWorkspacePointerDown"
     >
       <slot name="overlay" />
 
