@@ -5,11 +5,13 @@ import { RouterLink, useRoute } from 'vue-router';
 import { useProject } from '@/composables/useProject';
 import { useStickyNotes } from '@/composables/useStickyNotes';
 import { useMiniTextEditors } from '@/composables/useMiniTextEditors';
+import { useDrawingPaths } from '@/composables/useDrawingPaths';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
 import type { BoardPosition, BoardSize } from '@/types/sticky-note';
 import { MINI_TEXT_EDITOR_DEFAULT_SIZE } from '@/types/mini-text-editor';
+import type { CreateDrawingPathInput } from '@/types/drawing';
 
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
@@ -85,6 +87,8 @@ const {
   updateMiniTextEditorContent,
   deleteMiniTextEditor,
 } = useMiniTextEditors();
+
+const { drawingPaths, addDrawingPath } = useDrawingPaths();
 
 const canUndo = ref(false);
 const canRedo = ref(false);
@@ -218,6 +222,14 @@ function handleUpdateMiniTextEditorContent(payload: { id: string; contentHtml: s
 
 function handleDeleteMiniTextEditor(editorId: string): void {
   deleteMiniTextEditor(editorId);
+}
+
+function handleDrawingStrokeComplete(drawingPath: CreateDrawingPathInput): void {
+  if (!canEditBoard.value || selectedTool.value !== 'draw') {
+    return;
+  }
+
+  addDrawingPath(drawingPath);
 }
 
 onBeforeUnmount(() => {
@@ -412,11 +424,13 @@ onBeforeUnmount(() => {
             />
           </template>
 
-<BoardCanvas
-    :is-drawing-enabled='selectedTool === "draw" && canEditBoard'
-    stroke-color='#2563eb'
-    :stroke-width='3'
-/>
+          <BoardCanvas
+            :is-drawing-enabled="selectedTool === 'draw' && canEditBoard"
+            :paths="drawingPaths"
+            stroke-color="#2563eb"
+            :stroke-width="3"
+            @stroke-complete="handleDrawingStrokeComplete"
+          />
           <StickyNoteCard
             v-for="stickyNote in stickyNotes"
             :key="stickyNote.id"
