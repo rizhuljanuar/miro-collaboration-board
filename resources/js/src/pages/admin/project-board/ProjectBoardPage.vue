@@ -412,8 +412,11 @@ onBeforeUnmount(() => {
             />
           </template>
 
-          <BoardCanvas />
-
+<BoardCanvas
+    :is-drawing-enabled='selectedTool === "draw" && canEditBoard'
+    stroke-color='#2563eb'
+    :stroke-width='3'
+/>
           <StickyNoteCard
             v-for="stickyNote in stickyNotes"
             :key="stickyNote.id"
