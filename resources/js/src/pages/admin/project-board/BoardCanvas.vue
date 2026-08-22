@@ -35,6 +35,7 @@ const activeStroke = ref<ActiveDrawingStroke | null>(null);
 const activePointerId = ref<number | null>(null);
 
 let resizeObserver: ResizeObserver | null = null;
+let pixelRatioMediaQuery: MediaQueryList | null = null;
 let cssWidth = 0;
 let cssHeight = 0;
 let pixelRatio = 1;
@@ -46,19 +47,18 @@ function drawGrid(
   height: number,
   ratio: number,
 ): void {
+  const devicePixelDotSize = 1 / ratio;
+
   context.save();
 
   context.fillStyle = GRID_COLOR;
 
   for (let x = 0; x <= width; x += GRID_SIZE) {
     for (let y = 0; y <= height; y += GRID_SIZE) {
-      const crispX = (Math.round(x * ratio) + 0.5) / ratio;
-      const crispY = (Math.round(y * ratio) + 0.5) / ratio;
-      const radius = GRID_POINT_RADIUS / ratio;
+      const crispX = Math.round(x * ratio) / ratio;
+      const crispY = Math.round(y * ratio) / ratio;
 
-      context.beginPath();
-      context.arc(crispX, crispY, radius, 0, Math.PI * 2);
-      context.fill();
+      context.fillRect(crispX, crispY, devicePixelDotSize, devicePixelDotSize);
     }
   }
 
@@ -152,6 +152,29 @@ function cancelScheduledRedraw(): void {
   animationFrameId = null;
 }
 
+function getDevicePixelRatio(): number {
+  return Math.max(1, window.devicePixelRatio || 1);
+}
+
+function stopObservingPixelRatio(): void {
+  pixelRatioMediaQuery?.removeEventListener('change', handlePixelRatioChange);
+
+  pixelRatioMediaQuery = null;
+}
+
+function handlePixelRatioChange(): void {
+  observePixelRatio();
+  syncCanvasSize();
+}
+
+function observePixelRatio(): void {
+  stopObservingPixelRatio();
+
+  pixelRatioMediaQuery = window.matchMedia(`(resolution: ${getDevicePixelRatio()}dppx)`);
+
+  pixelRatioMediaQuery.addEventListener('change', handlePixelRatioChange);
+}
+
 function syncCanvasSize(): void {
   const canvasElement = canvas.value;
 
@@ -163,7 +186,7 @@ function syncCanvasSize(): void {
 
   cssWidth = Math.max(1, Math.floor(bounds.width));
   cssHeight = Math.max(1, Math.floor(bounds.height));
-  pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+  pixelRatio = getDevicePixelRatio();
 
   canvasElement.width = Math.floor(cssWidth * pixelRatio);
   canvasElement.height = Math.floor(cssHeight * pixelRatio);
@@ -329,12 +352,14 @@ onMounted(async () => {
 
   resizeObserver.observe(canvas.value.parentElement);
 
+  observePixelRatio();
   syncCanvasSize();
 });
 
 onBeforeUnmount(() => {
   cleanupDrawingInteraction();
   cancelScheduledRedraw();
+  stopObservingPixelRatio();
 
   resizeObserver?.disconnect();
   resizeObserver = null;
