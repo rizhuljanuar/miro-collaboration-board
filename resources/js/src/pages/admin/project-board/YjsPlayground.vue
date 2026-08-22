@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 import * as Y from 'yjs';
 
 import { useYjsDocumentStore } from '@/stores/yjs-document.store';
@@ -13,6 +14,8 @@ interface SharedStickyNotePreview {
 const PLAYGROUND_ROOM_ID = 'yjs-playground';
 
 const yjsDocumentStore = useYjsDocumentStore();
+
+const { activeRoomId, connectionStatus, isSynced } = storeToRefs(yjsDocumentStore);
 
 const boardTitle = ref('');
 const stickyNotes = ref<SharedStickyNotePreview[]>([]);
@@ -129,6 +132,32 @@ onBeforeUnmount(() => {
           Playground lokal untuk memahami shared data structure Yjs sebelum state board disinkronkan
           melalui WebSocket.
         </p>
+
+        <div class="mt-5 flex flex-wrap items-center gap-2">
+          <span
+            class="rounded-full px-3 py-1.5 text-xs font-bold capitalize"
+            :class="
+              connectionStatus === 'connected'
+                ? 'bg-emerald-100 text-emerald-800'
+                : connectionStatus === 'connecting'
+                  ? 'bg-amber-100 text-amber-800'
+                  : 'bg-red-100 text-red-800'
+            "
+          >
+            WebSocket: {{ connectionStatus }}
+          </span>
+
+          <span
+            class="rounded-full px-3 py-1.5 text-xs font-bold"
+            :class="isSynced ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-200 text-slate-700'"
+          >
+            {{ isSynced ? 'Yjs synced' : 'Waiting for sync' }}
+          </span>
+
+          <span class="rounded-full bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700">
+            Room: {{ activeRoomId ?? 'none' }}
+          </span>
+        </div>
       </header>
 
       <section class="mt-8 grid gap-6 lg:grid-cols-2">
