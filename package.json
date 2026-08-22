@@ -5,10 +5,12 @@
     "build": "vite build",
     "dev": "vite",
     "type-check": "vue-tsc --noEmit",
-    "format": "prettier --write 'resources/js/**/*.{js,mjs,cjs,ts,jsx,tsx,vue,css}' && vendor/bin/pint"
+    "format": "prettier --write 'resources/js/**/*.{js,mjs,cjs,ts,jsx,tsx,vue,css}' && vendor/bin/pint",
+    "yjs:server": "y-websocket-server --port 1234"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.8",
+    "@y/websocket-server": "^0.1.5",
     "autoprefixer": "^10.5.4",
     "axios": "^1.7.4",
     "concurrently": "^9.0.1",
@@ -21,6 +23,7 @@
     "vue-tsc": "^3.3.9"
   },
   "dependencies": {
+    "@y/y": "^14.0.0-rc.7",
     "dompurify": "^3.4.14",
     "pinia": "^4.0.3",
     "vue": "^3.5.41",
