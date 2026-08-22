@@ -38,6 +38,7 @@ let resizeObserver: ResizeObserver | null = null;
 let cssWidth = 0;
 let cssHeight = 0;
 let pixelRatio = 1;
+let animationFrameId: number | null = null;
 
 function drawGrid(
   context: CanvasRenderingContext2D,
@@ -102,7 +103,7 @@ function drawStroke(
   context.restore();
 }
 
-function redrawCanvas(): void {
+function renderCanvas(): void {
   const canvasElement = canvas.value;
 
   if (!canvasElement || cssWidth === 0 || cssHeight === 0) {
@@ -129,6 +130,28 @@ function redrawCanvas(): void {
   }
 }
 
+function scheduleRedraw(): void {
+  if (animationFrameId !== null) {
+    return;
+  }
+
+  animationFrameId = window.requestAnimationFrame(() => {
+    animationFrameId = null;
+
+    renderCanvas();
+  });
+}
+
+function cancelScheduledRedraw(): void {
+  if (animationFrameId === null) {
+    return;
+  }
+
+  window.cancelAnimationFrame(animationFrameId);
+
+  animationFrameId = null;
+}
+
 function syncCanvasSize(): void {
   const canvasElement = canvas.value;
 
@@ -145,7 +168,8 @@ function syncCanvasSize(): void {
   canvasElement.width = Math.floor(cssWidth * pixelRatio);
   canvasElement.height = Math.floor(cssHeight * pixelRatio);
 
-  redrawCanvas();
+  cancelScheduledRedraw();
+  renderCanvas();
 }
 
 function getCanvasPoint(event: PointerEvent): DrawingPoint | null {
@@ -187,7 +211,7 @@ function startDrawing(event: PointerEvent): void {
 
   canvasElement.setPointerCapture(event.pointerId);
 
-  redrawCanvas();
+  scheduleRedraw();
 }
 
 function continueDrawing(event: PointerEvent): void {
@@ -212,7 +236,7 @@ function continueDrawing(event: PointerEvent): void {
 
   activeStroke.value.points.push(point);
 
-  redrawCanvas();
+  scheduleRedraw();
 }
 
 function releasePointerCapture(pointerId: number): void {
@@ -241,7 +265,7 @@ function finishDrawing(event: PointerEvent): void {
     points: completedStroke.points,
   });
 
-  redrawCanvas();
+  scheduleRedraw();
 }
 
 function cancelDrawing(event: PointerEvent): void {
@@ -254,7 +278,7 @@ function cancelDrawing(event: PointerEvent): void {
 
   releasePointerCapture(event.pointerId);
 
-  redrawCanvas();
+  scheduleRedraw();
 }
 
 function handleLostPointerCapture(event: PointerEvent): void {
@@ -262,7 +286,7 @@ function handleLostPointerCapture(event: PointerEvent): void {
     activeStroke.value = null;
     activePointerId.value = null;
 
-    redrawCanvas();
+    scheduleRedraw();
   }
 }
 
@@ -280,7 +304,7 @@ watch(
   (isDrawingEnabled) => {
     if (!isDrawingEnabled) {
       cleanupDrawingInteraction();
-      redrawCanvas();
+      scheduleRedraw();
     }
   },
 );
@@ -288,10 +312,7 @@ watch(
 watch(
   () => props.paths,
   () => {
-    redrawCanvas();
-  },
-  {
-    deep: true,
+    scheduleRedraw();
   },
 );
 
@@ -313,6 +334,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cleanupDrawingInteraction();
+  cancelScheduledRedraw();
 
   resizeObserver?.disconnect();
   resizeObserver = null;
