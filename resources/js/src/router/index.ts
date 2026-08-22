@@ -37,9 +37,9 @@ const routes: RouteRecordRaw[] = [
     name: 'yjs-playground',
     component: () => import('@/pages/admin/project-board/YjsPlayground.vue'),
     meta: {
-        requiresAuth: true,
+      requiresAuth: true,
     },
-},
+  },
   {
     path: '/:pathMatch(.*)*',
     redirect: '/login',
