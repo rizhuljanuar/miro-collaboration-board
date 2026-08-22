@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue';
+import { computed, readonly, ref } from 'vue';
 
 import type { CreateDrawingPathInput, DrawingPath, DrawingPoint } from '@/types/drawing';
 
@@ -23,6 +23,10 @@ function normalizeStrokeWidth(width: number): number {
 
 export function useDrawingPaths() {
   const drawingPaths = ref<DrawingPath[]>([]);
+  const redoDrawingPaths = ref<DrawingPath[]>([]);
+
+  const canUndo = computed(() => drawingPaths.value.length > 0);
+  const canRedo = computed(() => redoDrawingPaths.value.length > 0);
 
   function addDrawingPath(input: CreateDrawingPathInput): DrawingPath | null {
     if (input.points.length === 0) {
@@ -39,6 +43,9 @@ export function useDrawingPaths() {
 
     drawingPaths.value = [...drawingPaths.value, drawingPath];
 
+    // Action baru setelah undo membuat redo history lama tidak relevan.
+    redoDrawingPaths.value = [];
+
     return drawingPath;
   }
 
@@ -52,14 +59,45 @@ export function useDrawingPaths() {
     return drawingPaths.value.length < previousLength;
   }
 
+  function undoDrawingPath(): DrawingPath | null {
+    const drawingPath = drawingPaths.value.at(-1);
+
+    if (!drawingPath) {
+      return null;
+    }
+
+    drawingPaths.value = drawingPaths.value.slice(0, -1);
+    redoDrawingPaths.value = [...redoDrawingPaths.value, drawingPath];
+
+    return drawingPath;
+  }
+
+  function redoDrawingPath(): DrawingPath | null {
+    const drawingPath = redoDrawingPaths.value.at(-1);
+
+    if (!drawingPath) {
+      return null;
+    }
+
+    redoDrawingPaths.value = redoDrawingPaths.value.slice(0, -1);
+    drawingPaths.value = [...drawingPaths.value, drawingPath];
+
+    return drawingPath;
+  }
+
   function clearDrawingPaths(): void {
     drawingPaths.value = [];
+    redoDrawingPaths.value = [];
   }
 
   return {
     drawingPaths: computed((): readonly DrawingPath[] => drawingPaths.value),
+    canUndo,
+    canRedo,
     addDrawingPath,
     removeDrawingPath,
+    undoDrawingPath,
+    redoDrawingPath,
     clearDrawingPaths,
   };
 }

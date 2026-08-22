@@ -88,18 +88,8 @@ const {
   deleteMiniTextEditor,
 } = useMiniTextEditors();
 
-const { drawingPaths, addDrawingPath } = useDrawingPaths();
-
-const canUndo = ref(false);
-const canRedo = ref(false);
-
-function handleUndo(): void {
-  // History action akan diimplementasikan saat sticky note dan canvas drawing tersedia.
-}
-
-function handleRedo(): void {
-  // History action akan diimplementasikan saat sticky note dan canvas drawing tersedia.
-}
+const { drawingPaths, canUndo, canRedo, addDrawingPath, undoDrawingPath, redoDrawingPath } =
+  useDrawingPaths();
 
 const projectId = computed<number | null>(() => {
   const value = Number(route.params.projectId);
@@ -222,6 +212,22 @@ function handleUpdateMiniTextEditorContent(payload: { id: string; contentHtml: s
 
 function handleDeleteMiniTextEditor(editorId: string): void {
   deleteMiniTextEditor(editorId);
+}
+
+function handleUndo(): void {
+  if (!canEditBoard.value) {
+    return;
+  }
+
+  undoDrawingPath();
+}
+
+function handleRedo(): void {
+  if (!canEditBoard.value) {
+    return;
+  }
+
+  redoDrawingPath();
 }
 
 function handleDrawingStrokeComplete(drawingPath: CreateDrawingPathInput): void {
@@ -401,8 +407,8 @@ onBeforeUnmount(() => {
           v-model:selected-tool="selectedTool"
           :can-edit="canEditBoard"
           :collaborators-count="project.members_count ?? 1"
-          :can-undo="canUndo"
-          :can-redo="canRedo"
+          :can-undo="canEditBoard && canUndo"
+          :can-redo="canEditBoard && canRedo"
           @undo="handleUndo"
           @redo="handleRedo"
         />
