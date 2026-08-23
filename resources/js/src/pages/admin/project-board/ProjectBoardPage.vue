@@ -7,7 +7,7 @@ import { useProject } from '@/composables/useProject';
 import { useYjsStickyNotes } from '@/composables/useYjsStickyNotes';
 import { useYjsDocumentStore } from '@/stores/yjs-document.store';
 import { useYjsMiniTextEditors } from '@/composables/useYjsMiniTextEditors';
-import { useDrawingPaths } from '@/composables/useDrawingPaths';
+import { useYjsDrawingPaths } from '@/composables/useYjsDrawingPaths';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
@@ -93,7 +93,7 @@ const {
 } = useYjsMiniTextEditors(yDocument);
 
 const { drawingPaths, canUndo, canRedo, addDrawingPath, undoDrawingPath, redoDrawingPath } =
-  useDrawingPaths();
+  useYjsDrawingPaths(yDocument);
 
 const projectId = computed<number | null>(() => {
   const value = Number(route.params.projectId);

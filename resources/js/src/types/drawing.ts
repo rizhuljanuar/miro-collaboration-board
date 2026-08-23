@@ -7,7 +7,7 @@ export interface DrawingPath {
   id: string;
   color: string;
   width: number;
-  points: DrawingPoint[];
+  points: readonly DrawingPoint[];
   createdAt: string;
 }
 
