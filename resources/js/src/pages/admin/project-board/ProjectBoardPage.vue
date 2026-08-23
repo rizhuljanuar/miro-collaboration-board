@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { useProject } from '@/composables/useProject';
-import { useStickyNotes } from '@/composables/useStickyNotes';
+import { useYjsStickyNotes } from '@/composables/useYjsStickyNotes';
+import { useYjsDocumentStore } from '@/stores/yjs-document.store';
 import { useMiniTextEditors } from '@/composables/useMiniTextEditors';
 import { useDrawingPaths } from '@/composables/useDrawingPaths';
 
@@ -24,6 +26,8 @@ import MiniTextEditorCard from '@/pages/admin/project-board/MiniTextEditorCard.v
 import BoardCanvas from '@/pages/admin/project-board/BoardCanvas.vue';
 
 const route = useRoute();
+const yjsDocumentStore = useYjsDocumentStore();
+const { document: yDocument } = storeToRefs(yjsDocumentStore);
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
 const selectedStickyNoteId = ref<string | null>(null);
@@ -77,7 +81,7 @@ const {
   updateStickyNoteBody,
   updateStickyNoteColor,
   deleteStickyNote,
-} = useStickyNotes();
+} = useYjsStickyNotes(yDocument);
 
 const {
   miniTextEditors,
@@ -136,6 +140,28 @@ const workspaceToolMessage = computed(() => {
 const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
   useProject(projectId);
 
+function getProjectRoomId(id: number): string {
+  return `project-board-${id}`;
+}
+
+watch(
+  project,
+  (currentProject) => {
+    if (!currentProject) {
+      if (yjsDocumentStore.activeRoomId?.startsWith('project-board-')) {
+        yjsDocumentStore.destroyDocument();
+      }
+
+      return;
+    }
+
+    yjsDocumentStore.initializeDocument(getProjectRoomId(currentProject.id));
+  },
+  {
+    immediate: true,
+  },
+);
+
 function handleCreateStickyNote(position: BoardPosition): void {
   if (!canEditBoard.value || selectedTool.value !== 'sticky-note') {
     return;
@@ -148,6 +174,10 @@ function handleCreateStickyNote(position: BoardPosition): void {
       y: Math.max(0, position.y - 24),
     },
   });
+
+  if (!stickyNote) {
+    return;
+  }
 
   selectedStickyNoteId.value = stickyNote.id;
   selectedTool.value = 'cursor';
@@ -240,6 +270,10 @@ function handleDrawingStrokeComplete(drawingPath: CreateDrawingPathInput): void 
 
 onBeforeUnmount(() => {
   dispose();
+
+  if (yjsDocumentStore.activeRoomId?.startsWith('project-board-')) {
+    yjsDocumentStore.destroyDocument();
+  }
 });
 </script>
 
