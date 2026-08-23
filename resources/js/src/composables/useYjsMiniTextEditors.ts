@@ -5,6 +5,8 @@ import type { MiniTextEditor } from '@/types/mini-text-editor';
 import { MINI_TEXT_EDITOR_DEFAULT_SIZE, MINI_TEXT_EDITOR_MIN_SIZE } from '@/types/mini-text-editor';
 import type { BoardPosition, BoardSize } from '@/types/sticky-note';
 
+import { sanitizeRichTextHtml } from '@/helpers/sanitize-rich-text';
+
 type YMiniTextEditor = Y.Map<unknown>;
 
 function createMiniTextEditorId(): string {
@@ -223,7 +225,7 @@ export function useYjsMiniTextEditors(yDocument: Ref<Y.Doc | null>) {
     contentHtml: string,
   ): MiniTextEditor | null {
     return updateMiniTextEditor(editorId, {
-      contentHtml,
+      contentHtml: sanitizeRichTextHtml(contentHtml),
     });
   }
 

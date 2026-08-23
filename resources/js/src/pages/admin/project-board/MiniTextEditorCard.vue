@@ -58,6 +58,8 @@ const highlightColors: Record<TextEditorHighlightColor, string> = {
 const dragHandle = ref<HTMLElement | null>(null);
 const resizeHandle = ref<HTMLElement | null>(null);
 const editorContent = ref<HTMLDivElement | null>(null);
+const isContentFocused = ref(false);
+const pendingRemoteContent = ref<string | null>(null);
 
 const dragState = ref<DragState | null>(null);
 const resizeState = ref<ResizeState | null>(null);
@@ -190,12 +192,12 @@ function selectionBelongsToEditor(): boolean {
   return anchorNode !== null && editorContent.value.contains(anchorNode);
 }
 
-function hydrateEditorContent(): void {
+function hydrateEditorContent(contentHtml = props.editor.contentHtml): void {
   if (!editorContent.value) {
     return;
   }
 
-  const sanitizedHtml = sanitizeRichTextHtml(props.editor.contentHtml);
+  const sanitizedHtml = sanitizeRichTextHtml(contentHtml);
 
   if (editorContent.value.innerHTML === sanitizedHtml) {
     return;
@@ -221,6 +223,22 @@ function handleEditorInput(): void {
   }
 
   emitEditorContent();
+}
+
+function handleEditorFocus(): void {
+  isContentFocused.value = true;
+}
+
+function handleEditorBlur(): void {
+  isContentFocused.value = false;
+
+  if (!pendingRemoteContent.value) {
+    return;
+  }
+
+  hydrateEditorContent(pendingRemoteContent.value);
+
+  pendingRemoteContent.value = null;
 }
 
 function handleEditorPaste(event: ClipboardEvent): void {
@@ -539,12 +557,19 @@ onMounted(() => {
 
 watch(
   () => props.editor.contentHtml,
-  () => {
-    if (document.activeElement === editorContent.value) {
+  (nextContentHtml) => {
+    const sanitizedHtml = sanitizeRichTextHtml(nextContentHtml);
+
+    if (document.activeElement === editorContent.value || isContentFocused.value) {
+      if (editorContent.value?.innerHTML !== sanitizedHtml) {
+        pendingRemoteContent.value = sanitizedHtml;
+      }
+
       return;
     }
 
-    hydrateEditorContent();
+    hydrateEditorContent(sanitizedHtml);
+    pendingRemoteContent.value = null;
   },
 );
 
@@ -605,11 +630,21 @@ onBeforeUnmount(() => {
         class="editor-rich-content min-h-full whitespace-pre-wrap break-words text-sm leading-6 text-slate-900 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[&quot;Mulai_tulis_ide_Anda...&quot;] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1 [&_img]:my-3 [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-slate-200 [&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-0.5"
         :class="canEdit ? 'cursor-text' : 'cursor-default'"
         @pointerdown.stop
+        @focus="handleEditorFocus"
+        @blur="handleEditorBlur"
         @input="handleEditorInput"
         @paste="handleEditorPaste"
         @dragover.prevent
         @drop="blockEditorDrop"
       ></div>
+
+      <p
+        v-if="pendingRemoteContent"
+        class="mt-3 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900"
+        role="status"
+      >
+        Ada perubahan dari collaborator. Perubahan akan dimuat saat Anda keluar dari editor.
+      </p>
 
       <p
         v-if="editorErrorMessage"
