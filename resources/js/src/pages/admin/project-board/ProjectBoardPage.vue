@@ -6,7 +6,7 @@ import { RouterLink, useRoute } from 'vue-router';
 import { useProject } from '@/composables/useProject';
 import { useYjsStickyNotes } from '@/composables/useYjsStickyNotes';
 import { useYjsDocumentStore } from '@/stores/yjs-document.store';
-import { useMiniTextEditors } from '@/composables/useMiniTextEditors';
+import { useYjsMiniTextEditors } from '@/composables/useYjsMiniTextEditors';
 import { useDrawingPaths } from '@/composables/useDrawingPaths';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
@@ -90,7 +90,7 @@ const {
   resizeMiniTextEditor,
   updateMiniTextEditorContent,
   deleteMiniTextEditor,
-} = useMiniTextEditors();
+} = useYjsMiniTextEditors(yDocument);
 
 const { drawingPaths, canUndo, canRedo, addDrawingPath, undoDrawingPath, redoDrawingPath } =
   useDrawingPaths();
@@ -216,10 +216,14 @@ function handleCreateTextEditor(position: BoardPosition): void {
     return;
   }
 
-  createMiniTextEditor({
+  const editor = createMiniTextEditor({
     x: Math.max(0, position.x - MINI_TEXT_EDITOR_DEFAULT_SIZE.width / 2),
     y: Math.max(0, position.y - 24),
   });
+
+  if (!editor) {
+    return;
+  }
 
   selectedTool.value = 'cursor';
 }
