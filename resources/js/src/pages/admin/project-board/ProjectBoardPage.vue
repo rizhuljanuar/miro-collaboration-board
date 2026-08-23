@@ -15,6 +15,8 @@ import type { BoardPosition, BoardSize } from '@/types/sticky-note';
 import { MINI_TEXT_EDITOR_DEFAULT_SIZE } from '@/types/mini-text-editor';
 import type { CreateDrawingPathInput } from '@/types/drawing';
 
+import { getProjectBoardYjsRoomId, isProjectBoardYjsRoom } from '@/helpers/yjs-room';
+
 import ActiveUserMenu from '@/components/ActiveUserMenu.vue';
 import ShareBoardButton from '@/components/ShareBoardButton.vue';
 
@@ -28,6 +30,7 @@ import BoardCanvas from '@/pages/admin/project-board/BoardCanvas.vue';
 const route = useRoute();
 const yjsDocumentStore = useYjsDocumentStore();
 const { document: yDocument } = storeToRefs(yjsDocumentStore);
+const activeBoardRoomId = ref<string | null>(null);
 const selectedTool = ref<BoardTool>('cursor');
 const selectedStickyNoteColor = ref<StickyNoteColor>('yellow');
 const selectedStickyNoteId = ref<string | null>(null);
@@ -140,22 +143,24 @@ const workspaceToolMessage = computed(() => {
 const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
   useProject(projectId);
 
-function getProjectRoomId(id: number): string {
-  return `project-board-${id}`;
-}
-
 watch(
   project,
   (currentProject) => {
     if (!currentProject) {
-      if (yjsDocumentStore.activeRoomId?.startsWith('project-board-')) {
+      if (activeBoardRoomId.value && yjsDocumentStore.isActiveRoom(activeBoardRoomId.value)) {
         yjsDocumentStore.destroyDocument();
       }
+
+      activeBoardRoomId.value = null;
 
       return;
     }
 
-    yjsDocumentStore.initializeDocument(getProjectRoomId(currentProject.id));
+    const roomId = getProjectBoardYjsRoomId(currentProject.id);
+
+    yjsDocumentStore.initializeDocument(roomId);
+
+    activeBoardRoomId.value = roomId;
   },
   {
     immediate: true,
@@ -275,9 +280,11 @@ function handleDrawingStrokeComplete(drawingPath: CreateDrawingPathInput): void 
 onBeforeUnmount(() => {
   dispose();
 
-  if (yjsDocumentStore.activeRoomId?.startsWith('project-board-')) {
+  if (activeBoardRoomId.value && yjsDocumentStore.isActiveRoom(activeBoardRoomId.value)) {
     yjsDocumentStore.destroyDocument();
   }
+
+  activeBoardRoomId.value = null;
 });
 </script>
 
