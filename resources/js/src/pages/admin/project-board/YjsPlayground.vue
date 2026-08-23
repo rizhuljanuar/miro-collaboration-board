@@ -15,7 +15,8 @@ const PLAYGROUND_ROOM_ID = 'yjs-playground';
 
 const yjsDocumentStore = useYjsDocumentStore();
 
-const { activeRoomId, connectionStatus, isSynced } = storeToRefs(yjsDocumentStore);
+const { activeRoomId, connectionStatus, isSynced, localPersistenceStatus } =
+  storeToRefs(yjsDocumentStore);
 
 const boardTitle = ref('');
 const stickyNotes = ref<SharedStickyNotePreview[]>([]);
@@ -152,6 +153,21 @@ onBeforeUnmount(() => {
             :class="isSynced ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-200 text-slate-700'"
           >
             {{ isSynced ? 'Yjs synced' : 'Waiting for sync' }}
+          </span>
+
+          <span
+            class="rounded-full px-3 py-1.5 text-xs font-bold capitalize"
+            :class="
+              localPersistenceStatus === 'ready'
+                ? 'bg-violet-100 text-violet-800'
+                : localPersistenceStatus === 'loading'
+                  ? 'bg-amber-100 text-amber-800'
+                  : localPersistenceStatus === 'error'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-slate-200 text-slate-700'
+            "
+          >
+            Local cache: {{ localPersistenceStatus }}
           </span>
 
           <span class="rounded-full bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700">
