@@ -15,6 +15,9 @@ import type {
 } from '@/types/mini-text-editor';
 
 import { sanitizeRichTextHtml } from '@/helpers/sanitize-rich-text';
+import { createDebouncedCallback } from '@/helpers/debounce';
+
+const EDITOR_CONTENT_SYNC_DELAY_MS = 300;
 
 const props = defineProps<{
   editor: MiniTextEditor;
@@ -222,8 +225,12 @@ function handleEditorInput(): void {
     return;
   }
 
-  emitEditorContent();
+  debouncedContentSync.schedule();
 }
+
+const debouncedContentSync = createDebouncedCallback(() => {
+  emitEditorContent();
+}, EDITOR_CONTENT_SYNC_DELAY_MS);
 
 function handleEditorFocus(): void {
   isContentFocused.value = true;
@@ -231,6 +238,8 @@ function handleEditorFocus(): void {
 
 function handleEditorBlur(): void {
   isContentFocused.value = false;
+
+  debouncedContentSync.flush();
 
   if (!pendingRemoteContent.value) {
     return;
@@ -255,7 +264,7 @@ function handleEditorPaste(event: ClipboardEvent): void {
   event.preventDefault();
 
   document.execCommand('insertText', false, plainText);
-  emitEditorContent();
+  debouncedContentSync.schedule();
 }
 
 function blockEditorDrop(event: DragEvent): void {
@@ -574,6 +583,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  debouncedContentSync.cancel();
   cleanupPointerInteractions();
 });
 </script>
