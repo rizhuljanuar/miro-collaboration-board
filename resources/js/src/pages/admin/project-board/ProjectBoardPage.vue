@@ -8,6 +8,7 @@ import { useYjsStickyNotes } from '@/composables/useYjsStickyNotes';
 import { useYjsDocumentStore } from '@/stores/yjs-document.store';
 import { useYjsMiniTextEditors } from '@/composables/useYjsMiniTextEditors';
 import { useYjsDrawingPaths } from '@/composables/useYjsDrawingPaths';
+import { useProjectPresence } from '@/composables/useProjectPresence';
 
 import { STICKY_NOTE_COLOR_OPTIONS, type BoardTool, type StickyNoteColor } from '@/types/board';
 import { STICKY_NOTE_DEFAULT_SIZE } from '@/types/sticky-note';
@@ -140,8 +141,13 @@ const workspaceToolMessage = computed(() => {
   return messages[selectedTool.value];
 });
 
-const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } =
-  useProject(projectId);
+const { project, isLoading, errorMessage, isNotFound, reloadProject, dispose } = useProject(projectId);
+
+const projectPresenceId = computed(() => {
+    return project.value?.id ?? null;
+});
+
+useProjectPresence(projectPresenceId);
 
 watch(
   project,
