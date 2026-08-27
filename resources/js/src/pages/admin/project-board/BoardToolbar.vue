@@ -14,7 +14,7 @@ interface ToolbarItem {
 const props = defineProps<{
   selectedTool: BoardTool;
   canEdit: boolean;
-  collaboratorsCount: number;
+  activeUsersCount: number;
   canUndo: boolean;
   canRedo: boolean;
 }>();
@@ -131,16 +131,16 @@ function selectTool(tool: BoardTool): void {
       </span>
 
       <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
-        {{ collaboratorsCount }}
-        collaborator{{ collaboratorsCount === 1 ? '' : 's' }}
+{{ activeUsersCount }}
+active user{{ activeUsersCount === 1 ? '' : 's' }}
       </span>
     </div>
 
     <span
       class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 lg:hidden"
     >
-      {{ collaboratorsCount }}
-      collaborator{{ collaboratorsCount === 1 ? '' : 's' }}
+{{ activeUsersCount }}
+active user{{ activeUsersCount === 1 ? '' : 's' }}
     </span>
   </div>
 </template>

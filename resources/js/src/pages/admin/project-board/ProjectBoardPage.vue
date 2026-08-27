@@ -27,6 +27,7 @@ import BoardWorkspace from '@/pages/admin/project-board/BoardWorkspace.vue';
 import StickyNoteCard from '@/pages/admin/project-board/StickyNoteCard.vue';
 import MiniTextEditorCard from '@/pages/admin/project-board/MiniTextEditorCard.vue';
 import BoardCanvas from '@/pages/admin/project-board/BoardCanvas.vue';
+import ProjectPresenceUsers from '@/pages/admin/project-board/ProjectPresenceUsers.vue';
 
 const route = useRoute();
 const yjsDocumentStore = useYjsDocumentStore();
@@ -147,7 +148,12 @@ const projectPresenceId = computed(() => {
     return project.value?.id ?? null;
 });
 
-useProjectPresence(projectPresenceId);
+const {
+    activeUsers,
+    errorMessage: presenceErrorMessage,
+    isJoined: isPresenceJoined,
+    isJoining: isPresenceJoining,
+} = useProjectPresence(projectPresenceId);
 
 watch(
   project,
@@ -318,11 +324,22 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <ActiveUserMenu />
+<div class='flex flex-wrap items-center gap-3'>
+    <ProjectPresenceUsers
+        :users='activeUsers'
+        :is-joined='isPresenceJoined'
+        :is-joining='isPresenceJoining'
+        :error-message='presenceErrorMessage'
+    />
 
-        <ShareBoardButton v-if="project" :project-id="project.id" :project-name="project.name" />
-      </div>
+    <ActiveUserMenu />
+
+    <ShareBoardButton
+        v-if='project'
+        :project-id='project.id'
+        :project-name='project.name'
+    />
+</div>
     </header>
 
     <section
@@ -457,7 +474,7 @@ onBeforeUnmount(() => {
         <BoardToolbar
           v-model:selected-tool="selectedTool"
           :can-edit="canEditBoard"
-          :collaborators-count="project.members_count ?? 1"
+          :active-users-count='activeUsers.length'
           :can-undo="canEditBoard && canUndo"
           :can-redo="canEditBoard && canRedo"
           @undo="handleUndo"
