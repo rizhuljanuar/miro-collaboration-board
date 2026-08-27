@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 
 import App from '@/app/App.vue';
+import '@/app/echo';
 import { pinia } from '@/app/pinia';
 import router from '@/router';
 

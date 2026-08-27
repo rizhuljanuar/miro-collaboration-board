@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
+import { disconnectEcho } from '@/app/echo';
 import { ApiResponse, AuthUser } from '@/types/auth';
 import { getCsrfToken } from '@/helpers/csrf';
 
@@ -75,6 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
       });
 
       if (response.status === 401) {
+        disconnectEcho();
         clearUser();
 
         return;

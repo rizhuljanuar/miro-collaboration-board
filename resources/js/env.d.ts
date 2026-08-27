@@ -1,5 +1,9 @@
 /// <reference types='vite/client' />
 
+interface Window {
+  Pusher: typeof import('pusher-js').default;
+}
+
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';
 
