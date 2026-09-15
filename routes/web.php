@@ -10,7 +10,7 @@ Route::get('/', function () {
 Route::get('/health', function () {
     return response()->json([
         'status' => 'ok',
-        'application' => config('app.name')
+        'application' => config('app.name'),
     ]);
 });
 
@@ -23,3 +23,7 @@ Route::get('/broadcast-test', function () {
         'status' => 'sent',
     ]);
 });
+
+
+Route::view('/app/{any?}', 'welcome')
+    ->where('any', '.*');

@@ -16,8 +16,7 @@ class BoardTestEvent implements ShouldBroadcast
      */
     public function __construct(
         public string $message,
-    )
-    {
+    ) {
         //
     }
 

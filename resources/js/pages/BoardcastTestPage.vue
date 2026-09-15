@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from "vue";
 
-const message = ref('Belum ada event');
+const message = ref("Belum ada event");
 
 let channel: ReturnType<typeof window.Echo.channel> | undefined;
 
 onMounted(() => {
-  channel = window.Echo
-  .channel('board-test')
-    .listen('.board.message', (event: { message: string }) => {
-      message.value = event.message
-    });
+  channel = window.Echo.channel("board-test").listen(
+    ".board.message",
+    (event: { message: string }) => {
+      message.value = event.message;
+    },
+  );
 });
 
 onUnmounted(() => {
-  window.Echo.leave('board-test')
-})
+  window.Echo.leave("board-test");
+});
 </script>
 
 <template>
